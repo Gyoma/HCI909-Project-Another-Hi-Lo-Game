@@ -1,7 +1,10 @@
+from cards.card import Card
 
 
 def main():
-    pass
+    card = Card()
+    print(card.rank, card.suit)
+
 
 
 if __name__ == "__main__":
