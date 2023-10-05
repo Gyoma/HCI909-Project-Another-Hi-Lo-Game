@@ -8,7 +8,7 @@ import detector.VideoStream as VideoStream
 import ultralytics as ul
 
 # from models import model_wrapper
-from helper import constants, data_generator
+# from helper import constants, data_generator
 
 
 ### ---- INITIALIZATION ---- ###
