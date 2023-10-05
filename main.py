@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # Begin capturing frames
     while not cam_quit:
 
-        card_detector.detect_cards()
+        _ = card_detector.detect_cards()
         image, _ = card_detector.last_images()
 
         cv2.imshow("Card Detector", image)

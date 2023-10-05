@@ -163,7 +163,7 @@ def process_card(contour, image,  card_model):
 
     results = card_model.predict(source=qCard.corner, imgsz=constants.CARD_CORNER_HEIGHT, verbose=False)
 
-    cv2.imshow("Corner", qCard.corner)
+    # cv2.imshow("Corner", qCard.corner)
 
     if len(results) > 0:
         res = results[0]
@@ -182,7 +182,7 @@ def draw_results(image, qCard):
 
     x = qCard.center[0]
     y = qCard.center[1]
-    cv2.circle(image, (x, y), 5, (255, 0, 0), -1)
+    # cv2.circle(image, (x, y), 5, (255, 0, 0), -1)
 
     rank_name = qCard.best_rank_match
     suit_name = qCard.best_suit_match
