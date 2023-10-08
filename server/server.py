@@ -3,6 +3,7 @@ import signal
 
 REQ_NUM_OF_PLAYERS = 2
 REQ_NUM_OF_CARDS = 3
+DISCONNECT_TIMEOUT_SEC = 120
 
 CARD_NAMES = ['H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'HJ', 'HQ', 'HK', 'HA', 
               'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',  
@@ -26,12 +27,14 @@ RANK_VALUES = {
 }
 
 class Player:
-    def __init__(self, id, reader, writer) -> None:
-        self.id = id
+    def __init__(self, ip, reader, writer):
+        self.ip = ip
         self.used_cards = []
         self.curr_cards = []
         self.reader = reader
         self.writer = writer
+        self.command_task = None
+        self.disconnect_task = None
 
     async def card_used(self, card):
         return await self.cards_used([card])
@@ -73,26 +76,44 @@ class Player:
 
 
 class GameBackend:
-    def __init__(self) -> None:
-        self.free_id = 0
+    def __init__(self):
+        # self.free_id = 0
         self.players = {}
         self.command_handlers = {
             'compete' : {
                 'handler' : self._compete_command,
-                'sync' : asyncio.Barrier(REQ_NUM_OF_PLAYERS)
+                'sync' : asyncio.Barrier(REQ_NUM_OF_PLAYERS),
+                'req_opp' : True
             },
             'used_cards': {
-                'handler' : self._used_cards_command
+                'handler' : self._used_cards_command,
+                'req_opp' : False
             }
         }
 
-    async def player_connected(self, reader, writer):
-        player = Player(self.free_id, reader, writer)
-        
-        self.free_id += 1
-        self.players.update({player.id : player})
+    async def player_connected(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        player_ip = writer.transport.get_extra_info('peername')[0]
 
-        handler_task = None
+        player = None
+
+        # Check if data for this IP is present. If so, then we recover player state
+        if player_ip in self.players:
+            player = self.players.get(player_ip)
+            
+            # Cancel pending disconnection task
+            if (player.disconnect_task is not None) and (not player.disconnect_task.cancelled()):
+                try:
+                    player.disconnect_task.cancel()
+                finally:
+                    pass
+
+            player.reader = reader
+            player.writer = writer
+        else:
+            # It's a new player or the player who reconnected after reconnection timeout fired
+            player = Player(player_ip, reader, writer)
+            self.players.update({player.ip : player})
+
         request = None
 
         while True:
@@ -101,14 +122,15 @@ class GameBackend:
 
             # Client disconnected
             if not request or request == 'quit':
-                if (handler_task is not None) and (not handler_task.cancelled()):
+                if (player.command_task is not None) and (not player.command_task.cancelled()):
                     try:
-                        handler_task.cancel()
+                        player.command_task.cancel()
                     finally:
                         pass
+                
                 break
 
-            if (handler_task is None) or (handler_task.done()):
+            if (player.command_task is None) or (player.command_task.done()):
                 def done_callback(task):
                     if task.cancelled():
                         return
@@ -117,16 +139,29 @@ class GameBackend:
 
                 command, args = await self._parse_command(request)
 
-                handler_task = asyncio.create_task(self._handle_request(player, command, args))
-                handler_task.add_done_callback(done_callback)
-                handler_task.set_name(command) # just to make it more handy
+                player.command_task = asyncio.create_task(self._handle_request(player, command, args))
+                player.command_task.add_done_callback(done_callback)
+                player.command_task.set_name(command) # just to make it more handy
 
             else:
                 await self._reply(writer, 'Waiting your opponent')
 
         writer.close()
         await writer.wait_closed()
-        self.players.pop(player.id)
+
+        # Creating timer task to remove player's data
+        player.disconnect_task = asyncio.create_task(asyncio.sleep(DISCONNECT_TIMEOUT_SEC))
+
+        def disconnect_callback(task):
+            if task.cancelled():
+                return
+            
+            print(f'Player\'s data removed for {player.ip}')
+            
+            self.players.pop(player.ip)
+
+        player.disconnect_task.add_done_callback(disconnect_callback)
+        
 
     async def _reply(self, writer, response):
         writer.write((str(response) + '\n').encode('utf8'))
@@ -199,7 +234,7 @@ class GameBackend:
 
     def _get_opponent(self, player):
         for key, value in self.players.items():
-            if key != player.id:
+            if key != player.ip:
                 return value
             
         return None
