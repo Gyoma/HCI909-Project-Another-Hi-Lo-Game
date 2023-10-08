@@ -2,6 +2,7 @@ import asyncio
 import signal
 
 REQ_NUM_OF_PLAYERS = 2
+REQ_NUM_OF_CARDS = 3
 
 CARD_NAMES = ['H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'HJ', 'HQ', 'HK', 'HA', 
               'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'SJ', 'SQ', 'SK', 'SA',  
@@ -114,8 +115,11 @@ class GameBackend:
                     
                     asyncio.create_task(self._reply(writer, task.result()))
 
-                handler_task = asyncio.create_task(self._handle_request(player, request))
+                command, args = await self._parse_command(request)
+
+                handler_task = asyncio.create_task(self._handle_request(player, command, args))
                 handler_task.add_done_callback(done_callback)
+                handler_task.set_name(command) # just to make it more handy
 
             else:
                 await self._reply(writer, 'Waiting your opponent')
@@ -128,9 +132,7 @@ class GameBackend:
         writer.write((str(response) + '\n').encode('utf8'))
         await writer.drain()
 
-    async def _handle_request(self, player, request):
-        command, args = await self._parse_command(request)
-
+    async def _handle_request(self, player, command, args):
         if command is None:
             return 'Bad command'
         
@@ -153,6 +155,9 @@ class GameBackend:
         return challenger in CARD_NAMES
 
     async def _compete_command(self, player, cards):
+        if len(cards) != REQ_NUM_OF_CARDS:
+            return f'Req. num of cards is {REQ_NUM_OF_CARDS}, but got {len(cards)}'
+
         for card in cards:
             if not await self._is_card(card):
                 return f'Card is expected, but got {card}'
