@@ -13,9 +13,10 @@ if __name__ == "__main__":
     while not cam_quit:
 
         _ = card_detector.detect_cards()
-        image, _ = card_detector.last_images()
+        image, deb_image = card_detector.last_images()
 
         cv2.imshow("Card Detector", image)
+        cv2.imshow("Debug", deb_image)
 
         # Poll the keyboard. If 'q' is pressed, exit the main loop.
         key = cv2.waitKey(1) & 0xFF

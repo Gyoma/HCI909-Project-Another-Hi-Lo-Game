@@ -106,13 +106,13 @@ def find_possible_cards(thresh_image):
     # and 4) have four corners
 
     for i in range(len(cnts_sort)):
-        size = cv2.contourArea(cnts_sort[i])
+        area = cv2.contourArea(cnts_sort[i])
         peri = cv2.arcLength(cnts_sort[i], True)
         approx = cv2.approxPolyDP(cnts_sort[i], 0.01 * peri, True)
 
-        # print(size)
+        print(area)
 
-        if ((size < CARD_MAX_AREA) and (size > CARD_MIN_AREA)
+        if ((area < CARD_MAX_AREA) and (area > CARD_MIN_AREA)
                 and (hier_sort[i][3] == -1) and (len(approx) == 4)):
             valid_cnts_sort.append(cnts_sort[i])
 
