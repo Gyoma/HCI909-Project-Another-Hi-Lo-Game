@@ -221,7 +221,7 @@ class GameBackend:
         if res == 1:
             return 'win'
         if res == -1:
-            return 'loose'
+            return 'loss'
         
         return 'draw'
 
