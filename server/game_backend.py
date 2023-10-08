@@ -57,6 +57,7 @@ class GameBackend:
                 
                 break
 
+            # If there is no pending command
             if (player.command_task is None) or (player.command_task.done()):
                 def done_callback(task):
                     if task.cancelled():
