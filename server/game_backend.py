@@ -60,6 +60,8 @@ class GameBackend:
             # If there is no pending command
             if (player.command_task is None) or (player.command_task.done()):
                 def done_callback(task):
+                    player.command_task = None
+
                     if task.cancelled():
                         return
                     
@@ -81,6 +83,8 @@ class GameBackend:
         player.disconnect_task = asyncio.create_task(asyncio.sleep(constants.DISCONNECT_TIMEOUT_SEC))
 
         def disconnect_callback(task):
+            player.disconnect_task = None
+
             if task.cancelled():
                 return
             
