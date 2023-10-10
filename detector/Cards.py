@@ -110,7 +110,7 @@ def find_possible_cards(thresh_image):
         peri = cv2.arcLength(cnts_sort[i], True)
         approx = cv2.approxPolyDP(cnts_sort[i], 0.01 * peri, True)
 
-        print(area)
+        # print(area)
 
         if ((area < CARD_MAX_AREA) and (area > CARD_MIN_AREA)
                 and (hier_sort[i][3] == -1) and (len(approx) == 4)):

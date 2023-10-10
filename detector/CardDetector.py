@@ -126,6 +126,8 @@ current_folder = os.path.dirname(os.path.abspath(__file__))
 # data_generator.split_data_wrt_yolo("/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/yolo_data/",
 #                                    "/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/yolo_train_data/")
 
+from helper import constants
+
 # Camera settings
 IM_WIDTH = 1280
 IM_HEIGHT = 720
@@ -140,12 +142,14 @@ class DetectedCard:
         self.suit = "Unknown"
 
 class CardDetector:
-    def __init__(self, video_src = 0) -> None:
+    def __init__(self, video_src = 0, buffer_size = 10) -> None:
         model_path = os.path.join(current_folder, "model", "weights", "best_s_3.pt")
         self.card_model = ul.YOLO(model_path)
 
         self.image = None
         self.pre_proc_image = None
+        self.buffer_size = buffer_size
+        self.cards_history = []
 
         # Initialize camera object and video feed from the camera. The video stream is set up
         # as a seperate thread that constantly grabs frames from the camera feed.
@@ -175,6 +179,11 @@ class CardDetector:
 
         # Find and sort the contours of all possible cards in the image (query cards)
         cnts_sort = Cards.find_possible_cards(self.pre_proc_image)
+
+        # Sort contours by x (from left ro right)
+        if len(cnts_sort) > 0:
+            bounding_boxes = [cv2.boundingRect(c) for c in cnts_sort]
+            (cnts_sort, _) = zip(*sorted(zip(cnts_sort, bounding_boxes), key=lambda b: b[1][0]))
 
         # Initialize a new "cards" list to assign the card objects.
         # k indexes the newly made array of cards.
