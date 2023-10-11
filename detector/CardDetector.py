@@ -174,6 +174,16 @@ class CardDetector:
 
         self.cards_history.append(cards)
 
+        # Draw latest contours
+        if draw_data:
+            image, _ = self.last_images()
+
+            for card in cards:
+                if card == 0:
+                    continue
+
+                cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
+
         if len(self.cards_history) != self.buffer_size:
             return []
         
@@ -220,7 +230,7 @@ class CardDetector:
             if card == 0:
                 continue
 
-            cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
+            # cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
             Cards.draw_results(image, card)
             
             # Draw framerate in the corner of the image. Framerate is calculated at the end of the main loop,
