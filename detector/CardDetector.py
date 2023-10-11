@@ -142,7 +142,7 @@ class DetectedCard:
         self.suit = "Unknown"
 
 class CardDetector:
-    def __init__(self, video_src = 0, buffer_size = 10) -> None:
+    def __init__(self, video_src = 0, buffer_size = 25) -> None:
         model_path = os.path.join(current_folder, "model", "weights", "best_s_3.pt")
         self.card_model = ul.YOLO(model_path)
 
@@ -163,7 +163,93 @@ class CardDetector:
         cv2.destroyAllWindows()
         self.video_stream.stop()
 
+    def buff_detect_cards(self, draw_data = True):
+        cards, frame_rate_calc = self._detect_cards_helper()
+
+        cards = cards[:constants.REQ_CARDS_NUM]
+        
+        cards = np.pad(cards, (0, constants.REQ_CARDS_NUM - len(cards)), 
+                       mode='constant', 
+                       constant_values=(0, 0))
+
+        self.cards_history.append(cards)
+
+        if len(self.cards_history) != self.buffer_size:
+            return []
+        
+        card_dicts = [{} for i in range(constants.REQ_CARDS_NUM)]
+
+        for cards in self.cards_history:
+            for i, card in enumerate(cards):
+                if card == 0:
+                    new_val = 1
+                    
+                    if card in card_dicts[i]:
+                        new_val = card_dicts[i][card][1] + 1
+
+                    card_dicts[i][card] = [0, new_val]
+                    continue
+
+                card_name = card.best_suit_match + card.best_rank_match
+                
+                new_val = 1
+                if card_name in card_dicts[i]:
+                    new_val = card_dicts[i][card_name][1] + 1
+
+                card_dicts[i][card_name] = [card, new_val]
+
+        cards = []
+
+        for card_dict in card_dicts:
+            if len(card_dict) == 0:
+                cards.append(0)
+                continue
+
+            card = sorted(card_dict.items(), key=lambda item : item[1][1], reverse=True)[0][1][0]
+
+            cards.append(card)
+
+        self.cards_history.pop(0)
+
+        if not draw_data:
+            return cards
+
+        image, _ = self.last_images()
+
+        for card in cards:
+            if card == 0:
+                continue
+
+            cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
+            Cards.draw_results(image, card)
+            
+            # Draw framerate in the corner of the image. Framerate is calculated at the end of the main loop,
+            # so the first time this runs, framerate will be shown as 0.
+            cv2.putText(self.image, "FPS: " + str(int(frame_rate_calc)),
+                        (10, 26), font, 0.7, (255, 0, 0), 2, cv2.LINE_AA)
+
+        return cards
+
     def detect_cards(self, draw_data = True):
+        cards, frame_rate_calc = self._detect_cards_helper()
+
+        if not draw_data:
+            return cards
+
+        image, _ = self.last_images()
+
+        for card in cards:
+            cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
+            Cards.draw_results(image, card)
+            
+            # Draw framerate in the corner of the image. Framerate is calculated at the end of the main loop,
+            # so the first time this runs, framerate will be shown as 0.
+            cv2.putText(self.image, "FPS: " + str(int(frame_rate_calc)),
+                        (10, 26), font, 0.7, (255, 0, 0), 2, cv2.LINE_AA)
+
+        return cards
+
+    def _detect_cards_helper(self):
         # Initialize calculated frame rate because it's calculated AFTER the first time it's displayed
         freq = cv2.getTickFrequency()
         frame_rate_calc = 1
@@ -206,28 +292,12 @@ class CardDetector:
                 if card.is_valid:
                     cards.append(card)
 
-                    if draw_data:
-                        self.image = Cards.draw_results(self.image, card)
-
-            # Draw card contours on image (have to do contours all at once or
-            # they do not show up properly for some reason)
-            if len(cards) != 0 and draw_data:
-                cnts = [card.contour for card in cards]
-                cv2.drawContours(self.image, cnts, -1, (255, 0, 0), 2)
-
         # Calculate framerate
         t2 = cv2.getTickCount()
         time1 = (t2 - t1) / freq
         frame_rate_calc = 1. / time1
 
-        if draw_data:
-            # Draw framerate in the corner of the image. Framerate is calculated at the end of the main loop,
-            # so the first time this runs, framerate will be shown as 0.
-            cv2.putText(self.image, "FPS: " + str(int(frame_rate_calc)),
-                        (10, 26), font, 0.7, (255, 0, 0), 2, cv2.LINE_AA)
+        return cards, frame_rate_calc
 
-
-        return cards
-    
     def last_images(self):
         return self.image, self.pre_proc_image
