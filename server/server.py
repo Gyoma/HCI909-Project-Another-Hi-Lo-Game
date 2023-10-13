@@ -3,8 +3,13 @@ from game_backend import GameBackend
 
 
 async def main():
+    print('Starting server...')
+
     backend = GameBackend()
-    server = await asyncio.start_server(backend.player_connected, '', 3306)
+    port = 3306
+    server = await asyncio.start_server(backend.player_connected, '', port)
+    
+    print(f'Start listening on {port} port...')    
     async with server:
         await server.serve_forever()
 
