@@ -73,11 +73,9 @@ class GameView(arcade.View):
                 self.game, first_player_selected_cards, second_player_selected_cards, round_result))
             self.window.current_view.setup()
 
-        self.ui_manager.add(arcade.gui.UIAnchorWidget(
-            anchor_x="right",
-            anchor_y="top",
-            child=ready_to_proceed_button,
-        ))
+        layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout.add(ready_to_proceed_button, anchor_x="right", anchor_y="top")
 
         self.__init_scroll_widgets()
 
@@ -134,11 +132,11 @@ class GameView(arcade.View):
             text="Left",
         )
 
-        self.ui_manager.add(arcade.gui.UIAnchorWidget(
-            anchor_x="left",
-            anchor_y="bottom",
-            child=self.scroll_left_button,
-        ))
+        layout1 = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout1.add(self.scroll_left_button,
+                    anchor_x="left",
+                    anchor_y="bottom",)
 
         self.scroll_right_button = arcade.gui.UIFlatButton(
             center_x=300,
@@ -148,11 +146,11 @@ class GameView(arcade.View):
             text="Right",
         )
 
-        self.ui_manager.add(arcade.gui.UIAnchorWidget(
-            anchor_x="right",
-            anchor_y="bottom",
-            child=self.scroll_right_button,
-        ))
+        layout2 = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout2.add(self.scroll_right_button, 
+                    anchor_x="right",
+                    anchor_y="bottom",)
 
     def __move_cards_left(self):
         while (self.move_cards):

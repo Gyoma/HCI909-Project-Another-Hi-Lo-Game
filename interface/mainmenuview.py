@@ -9,6 +9,8 @@ class MainMenuView(arcade.View):
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
 
+        self.setup()
+
     def setup(self):
         app_name_label = arcade.gui.UILabel(
             font_size=72,
@@ -46,11 +48,11 @@ class MainMenuView(arcade.View):
         vertical_box.add(new_game_button)
         vertical_box.add(quit_button)
 
-        self.ui_manager.add(arcade.gui.UIAnchorWidget(
-            anchor_x="center_x",
-            anchor_y="center_y",
-            child=vertical_box,
-        ))
+        layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout.add(vertical_box, 
+                   anchor_x="center_x",
+                   anchor_y="center_y",)
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)

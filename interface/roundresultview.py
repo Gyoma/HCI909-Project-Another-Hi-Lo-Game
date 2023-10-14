@@ -67,11 +67,11 @@ class RoundResultView(arcade.View):
         vertical_box.add(round_result_label)
         vertical_box.add(next_button)
 
-        self.ui_manager.add(arcade.gui.UIAnchorWidget(
-            anchor_x="center_x",
-            anchor_y="center_y",
-            child=vertical_box,
-        ))
+        layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout.add(vertical_box,
+                   anchor_x="center_x",
+                   anchor_y="center_y")
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)

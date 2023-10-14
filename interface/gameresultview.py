@@ -65,11 +65,11 @@ class GameResultView(arcade.View):
         vertical_box.add(play_again_button)
         vertical_box.add(quit_button)
 
-        self.ui_manager.add(arcade.gui.UIAnchorWidget(
-            anchor_x="center_x",
-            anchor_y="center_y",
-            child=vertical_box,
-        ))
+        layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout.add(vertical_box,
+                   anchor_x="center_x",
+                   anchor_y="center_y",)
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
