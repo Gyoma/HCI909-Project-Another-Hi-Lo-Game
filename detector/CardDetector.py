@@ -126,7 +126,7 @@ current_folder = os.path.dirname(os.path.abspath(__file__))
 # data_generator.split_data_wrt_yolo("/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/yolo_data/",
 #                                    "/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/yolo_train_data/")
 
-from helper import constants
+from detector.helper import constants
 
 # Camera settings
 IM_WIDTH = 1280
