@@ -17,6 +17,18 @@ class Card():
                     return "Hearts"
                 case Card.Suit.SPADES:
                     return "Spades"
+                
+        @classmethod
+        def from_str(cls, suit_str):
+            match (suit_str):
+                case "Clubs":
+                    return Card.Suit.CLUBS
+                case "Diamonds":
+                    return Card.Suit.DIAMONDS
+                case "Hearts":
+                    return Card.Suit.HEARTS
+                case "Spades":
+                    return Card.Suit.SPADES
 
     class Rank(Enum):
         TWO = 2
@@ -61,6 +73,36 @@ class Card():
                     return "K"
                 case Card.Rank.ACE:
                     return "A"
+                
+        @classmethod
+        def from_str(cls, rank_str):
+            match (rank_str):
+                case "2":
+                    return Card.Rank.TWO
+                case "3":
+                    return Card.Rank.THREE
+                case "4":
+                    return Card.Rank.FOUR
+                case "5":
+                    return Card.Rank.FIVE
+                case "6":
+                    return Card.Rank.SIX
+                case "7":
+                    return Card.Rank.SEVEN
+                case "8":
+                    return Card.Rank.EIGHT
+                case "9":
+                    return Card.Rank.NINE
+                case "10":
+                    return Card.Rank.TEN
+                case "Jack":
+                    return Card.Rank.JACK
+                case "Queen":
+                    return Card.Rank.QUEEN
+                case "King":
+                    return Card.Rank.KING
+                case "Ace":
+                    return Card.Rank.ACE
 
     def __init__(self, suit, rank):
         self.suit = suit
