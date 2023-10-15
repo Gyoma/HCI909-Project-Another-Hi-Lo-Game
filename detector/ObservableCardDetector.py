@@ -50,11 +50,11 @@ class ObservableCardDetector(metaclass=SingletonMeta):
         while True:
             time.sleep(0.1)
 
-            detectedCards = self.card_detector.detect_cards(draw_data=False)
-            if self.current_cards.is_equal(detectedCards):
+            cards_buffer = self.card_detector.detect_cards(draw_data=False)
+            if self.current_cards.is_equal(cards_buffer):
                 continue
 
-            self.current_cards.set_list(detectedCards)
+            self.current_cards.set_list(cards_buffer)
             self.notify_observers()
 
             if self.stop_thread:
