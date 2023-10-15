@@ -2,6 +2,7 @@ from game.gamelogic import GameLogic
 from cards.card import Card
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver
 
 from interface import gameview
 
@@ -29,6 +30,11 @@ class RoundResultView(arcade.View):
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
 
+        self.voice_command_observer = VoiceCommandObserver(
+            lambda command: self.__handle_voice_command(command))
+
+        self.go_to_next_round = False
+
     def setup(self):
         round_result_text = "It's a draw"
         match self.round_result:
@@ -55,13 +61,7 @@ class RoundResultView(arcade.View):
 
         @next_button.event("on_click")
         def on_click_flatbutton(event):
-            if (self.game.state.rounds_left == 0):
-                self.window.show_view(GameResultView(self.game.get_result()))
-                self.window.current_view.setup()
-                return
-
-            self.window.show_view(gameview.GameView(self.game))
-            self.window.current_view.setup()
+            self.__next()
 
         vertical_box = arcade.gui.UIBoxLayout()
         vertical_box.add(round_result_label)
@@ -76,6 +76,12 @@ class RoundResultView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
 
+        ObservableVoiceRecognizer().add_observer(self.voice_command_observer)
+
+    def on_hide_view(self):
+        ObservableVoiceRecognizer().remove_observer(self.voice_command_observer)
+        return super().on_hide_view()
+
     def on_draw(self):
         self.clear()
 
@@ -84,6 +90,13 @@ class RoundResultView(arcade.View):
         self.ui_manager.draw()
 
         self.__draw_score()
+
+    def on_update(self, delta_time: float):
+        if (self.go_to_next_round):
+            self.__next()
+            self.go_to_next_round = False
+
+        return super().on_update(delta_time)
 
     def __draw_score(self):
         first_player_score_text = f"First player score: {self.game.get_first_player_win_rounds()}"
@@ -119,3 +132,17 @@ class RoundResultView(arcade.View):
         _, card_height = CardSprite.card_sprite_size()
         self.__draw_cards_in_the_center(self.second_player_selected_cards_sprites, (
             self.window.height - card_height + SELECTED_CARD_VERTICAL_INDENT) / 2)
+        
+    def __next(self):
+        if (self.game.state.rounds_left == 0):
+            self.window.show_view(GameResultView(self.game.get_result()))
+            self.window.current_view.setup()
+            return
+
+        self.window.show_view(gameview.GameView(self.game))
+        self.window.current_view.setup()
+        
+    def __handle_voice_command(self, command):
+        lower_command = command.lower()
+        if (lower_command.count("next") > 0):
+            self.go_to_next_round = True
