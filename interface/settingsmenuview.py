@@ -16,6 +16,12 @@ class SettingsView(arcade.View):
         self.setup()
 
     def setup(self):
+        cameras_list_label = arcade.gui.UILabel(
+            font_size=18,
+            align="center",
+            text="Select camera:",
+        )
+
         cameras_list = arcade.gui.UIDropdown(
             options=self.__list_available_cameras(),
             width=200,
@@ -37,6 +43,7 @@ class SettingsView(arcade.View):
             self.window.current_view.setup()
 
         vertical_box = arcade.gui.UIBoxLayout()
+        vertical_box.add(cameras_list_label)
         vertical_box.add(cameras_list)
         vertical_box.add(back_to_menu_button)
 
