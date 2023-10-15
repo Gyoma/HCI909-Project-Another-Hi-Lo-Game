@@ -4,6 +4,7 @@ from interface.cardsprite import CardSprite
 from interface.roundresultview import RoundResultView
 from interface.settings import Settings
 from detector.ObservableCardDetector import ObservableCardDetector
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver
 
 import arcade
 import arcade.gui
@@ -40,6 +41,11 @@ class GameView(arcade.View):
 
         self.card_observer = CardsChangeObserver(
             lambda cards: self.__select_cards(cards))
+
+        self.voice_command_observer = VoiceCommandObserver(
+            lambda command: self.__handle_voice_command(command))
+        
+        self.player_ready = False
 
     def __del__(self):
         ObservableCardDetector(
@@ -82,12 +88,16 @@ class GameView(arcade.View):
         arcade.set_background_color(arcade.color.AMAZON)
         ObservableCardDetector(
             Settings().camera_id).add_observer(self.card_observer)
+        ObservableVoiceRecognizer(
+            Settings().microphone_id).add_observer(self.voice_command_observer)
         self.__select_cards(ObservableCardDetector(
             Settings().camera_id).get_cards())
 
     def on_hide_view(self):
         ObservableCardDetector(
             Settings().camera_id).remove_observer(self.card_observer)
+        ObservableVoiceRecognizer(
+            Settings().microphone_id).remove_observer(self.voice_command_observer)
         return super().on_hide_view()
 
     def on_draw(self):
@@ -115,6 +125,13 @@ class GameView(arcade.View):
 
     def on_mouse_release(self, x, y, button, modifiers):
         self.move_cards = False
+
+    def on_update(self, delta_time: float):
+        if self.player_ready:
+            self.__proseed_round()
+            self.player_ready = False
+
+        return super().on_update(delta_time)
 
     def __init_scroll_widgets(self):
         self.scroll_left_button = arcade.gui.UIFlatButton(
@@ -194,6 +211,14 @@ class GameView(arcade.View):
         self.window.show_view(RoundResultView(
             self.game, first_player_selected_cards, second_player_selected_cards, round_result))
         self.window.current_view.setup()
+
+    def __handle_voice_command(self, command):
+        lower_command = command.lower()
+        if (lower_command.count("ready") > 0 or
+            lower_command.count("compete") > 0 or
+            lower_command.count("proceed") > 0 or
+                lower_command.count("attack") > 0):
+            self.player_ready = True
 
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
