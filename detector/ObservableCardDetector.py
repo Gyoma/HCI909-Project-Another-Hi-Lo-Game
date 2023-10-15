@@ -37,7 +37,7 @@ class ThreadSafePredictedCardsList:
 class ObservableCardDetector(metaclass=SingletonMeta):
     def __init__(self, vidoe_src=0, buffer_size=DEFAULT_BUFFER_SIZE):
         self.card_detector = CardDetector(vidoe_src, buffer_size)
-        self.observers = []
+        self.observers = weakref.WeakSet()
         self.current_cards = ThreadSafePredictedCardsList()
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
@@ -61,7 +61,7 @@ class ObservableCardDetector(metaclass=SingletonMeta):
                 break
 
     def add_observer(self, observer):
-        self.observers.append(observer)
+        self.observers.add(observer)
     
     def remove_observer(self, observer):
         self.observers.remove(observer)
