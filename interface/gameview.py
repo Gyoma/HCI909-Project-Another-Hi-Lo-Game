@@ -24,9 +24,6 @@ class GameView(arcade.View):
     def __init__(self, game):
         super().__init__()
 
-        self.first_player_selected_cards_sprites = arcade.SpriteList()
-        self.first_player_available_cards_sprites = arcade.SpriteList()
-
         self.first_player_selected_cards = []
 
         self.game = game
@@ -34,8 +31,6 @@ class GameView(arcade.View):
         self.all_cards_sprites = arcade.SpriteList()
         for card in GameLogic.get_all_cards():
             self.all_cards_sprites.append(CardSprite(card))
-
-        self.second_player_selected_cards_sprites = arcade.SpriteList()
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
@@ -61,32 +56,7 @@ class GameView(arcade.View):
 
         @ready_to_proceed_button.event("on_click")
         def on_click_flatbutton(event):
-            if (len(self.first_player_selected_cards) != GameLogic.CARDS_USED_PER_ROUND):
-                return
-
-            first_player_selected_cards = self.first_player_selected_cards
-
-            second_player_selected_cards = random.sample(
-                self.game.get_second_player_available_cards(), GameLogic.CARDS_USED_PER_ROUND)
-
-            card_width, card_height = CardSprite.card_sprite_size()
-
-            self.second_player_selected_cards_sprites.clear()
-            for i, card in enumerate(second_player_selected_cards):
-                card_sprite = CardSprite(card)
-                card_sprite.face_up()
-                card_sprite.position = (i + 0.5) * \
-                    card_width, card_height / 2 + 300
-                self.second_player_selected_cards_sprites.append(card_sprite)
-
-            round_result = self.game.proceed_round(
-                first_player_selected_cards, second_player_selected_cards)
-
-            self.__update_first_player_cards()
-
-            self.window.show_view(RoundResultView(
-                self.game, first_player_selected_cards, second_player_selected_cards, round_result))
-            self.window.current_view.setup()
+            self.__proseed_round()
 
         score_label = arcade.gui.UILabel(
             font_size=18,
@@ -183,15 +153,11 @@ class GameView(arcade.View):
 
     def __update_first_player_cards(self):
         card_width, card_height = CardSprite.card_sprite_size()
-        self.first_player_selected_cards_sprites.clear()
-
-        self.first_player_available_cards_sprites.clear()
 
         for i, card_sprite in enumerate(self.all_cards_sprites):
             card_sprite.face_up()
             card_sprite.position = (i + 0.5) * card_width, card_height / 2
             if (card_sprite.card in self.game.get_first_player_available_cards()):
-                self.first_player_available_cards_sprites.append(card_sprite)
                 continue
 
             card_sprite.alpha = 150
@@ -210,6 +176,24 @@ class GameView(arcade.View):
                 continue
 
             self.first_player_selected_cards.append(card)
+
+    def __proseed_round(self):
+        first_player_selected_cards = self.first_player_selected_cards.copy()
+
+        if (len(first_player_selected_cards) != GameLogic.CARDS_USED_PER_ROUND):
+            return
+
+        second_player_selected_cards = random.sample(
+            self.game.get_second_player_available_cards(), GameLogic.CARDS_USED_PER_ROUND)
+
+        round_result = self.game.proceed_round(
+            first_player_selected_cards, second_player_selected_cards)
+
+        self.__update_first_player_cards()
+
+        self.window.show_view(RoundResultView(
+            self.game, first_player_selected_cards, second_player_selected_cards, round_result))
+        self.window.current_view.setup()
 
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
