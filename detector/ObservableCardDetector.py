@@ -9,10 +9,10 @@ import time
 DEFAULT_BUFFER_SIZE = 25
 
 
-class ThreadSafeWeakKeyDictionary:
+class ThreadSafePredictedCardsList:
     def __init__(self):
         self.lock = threading.Lock()
-        self._data = weakref.WeakKeyDictionary()
+        self._data = []
 
     def set_list(self, new_list):
         with self.lock:
@@ -38,7 +38,7 @@ class ObservableCardDetector(metaclass=SingletonMeta):
     def __init__(self, vidoe_src=0, buffer_size=DEFAULT_BUFFER_SIZE):
         self.card_detector = CardDetector(vidoe_src, buffer_size)
         self.observers = []
-        self.current_cards = ThreadSafeWeakKeyDictionary()
+        self.current_cards = ThreadSafePredictedCardsList()
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
         self.stop_thread = False
