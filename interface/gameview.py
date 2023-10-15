@@ -143,23 +143,8 @@ class GameView(arcade.View):
             self.move_task.start()
             return
 
-        # cards = arcade.get_sprites_at_point(
-        #     (x, y), self.first_player_available_cards_sprites)
-        # for card in cards:
-        #     if (not card in self.first_player_selected_cards_sprites):
-        #         if (len(self.first_player_selected_cards_sprites) == GameLogic.CARDS_USED_PER_ROUND):
-        #             return
-
-        #         card.position = card.position[0], card.position[1] + 20
-        #         self.first_player_selected_cards_sprites.append(card)
-        #     else:
-        #         card.position = card.position[0], card.position[1] - 20
-        #         self.first_player_selected_cards_sprites.remove(card)
-
     def on_mouse_release(self, x, y, button, modifiers):
         self.move_cards = False
-        # if (self.move_task != None):
-        #     self.move_task.cancel()
 
     def __init_scroll_widgets(self):
         self.scroll_left_button = arcade.gui.UIFlatButton(
