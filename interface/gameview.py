@@ -19,6 +19,7 @@ class CardsChangeObserver():
     def update(self, cards):
         self.observer(cards)
 
+
 class GameView(arcade.View):
     def __init__(self, game):
         super().__init__()
@@ -42,10 +43,12 @@ class GameView(arcade.View):
         self.move_cards = False
         self.move_task = None
 
-        self.card_observer = CardsChangeObserver(lambda cards: self.__select_cards(cards))
+        self.card_observer = CardsChangeObserver(
+            lambda cards: self.__select_cards(cards))
 
     def __del__(self):
-        ObservableCardDetector(Settings().camera_id).remove_observer(self.card_observer)
+        ObservableCardDetector(
+            Settings().camera_id).remove_observer(self.card_observer)
 
     def setup(self):
         self.__update_first_player_cards()
@@ -60,7 +63,7 @@ class GameView(arcade.View):
         def on_click_flatbutton(event):
             if (len(self.first_player_selected_cards) != GameLogic.CARDS_USED_PER_ROUND):
                 return
-            
+
             first_player_selected_cards = self.first_player_selected_cards
 
             second_player_selected_cards = random.sample(
@@ -85,19 +88,36 @@ class GameView(arcade.View):
                 self.game, first_player_selected_cards, second_player_selected_cards, round_result))
             self.window.current_view.setup()
 
+        score_label = arcade.gui.UILabel(
+            font_size=18,
+            width=300,
+            align="left",
+            multiline=True,
+            text=f"First player score: {self.game.get_first_player_win_rounds()}\n"
+            f"Second player score: {self.game.get_second_player_win_rounds()}\n"
+            f"Rounds left: {self.game.state.rounds_left}",
+        )
+
         layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
 
         layout.add(ready_to_proceed_button, anchor_x="right", anchor_y="top")
+
+        layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+        layout.add(score_label, anchor_x="left", anchor_y="top")
 
         self.__init_scroll_widgets()
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-        ObservableCardDetector(Settings().camera_id).add_observer(self.card_observer)
-        self.__select_cards(ObservableCardDetector(Settings().camera_id).get_cards())
+        ObservableCardDetector(
+            Settings().camera_id).add_observer(self.card_observer)
+        self.__select_cards(ObservableCardDetector(
+            Settings().camera_id).get_cards())
 
     def on_hide_view(self):
-        ObservableCardDetector(Settings().camera_id).remove_observer(self.card_observer)
+        ObservableCardDetector(
+            Settings().camera_id).remove_observer(self.card_observer)
         return super().on_hide_view()
 
     def on_draw(self):
@@ -106,7 +126,6 @@ class GameView(arcade.View):
         self.all_cards_sprites.draw()
         self.ui_manager.draw()
 
-        self.__draw_score()
         self.__draw_first_player_selected_cards()
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -163,7 +182,7 @@ class GameView(arcade.View):
 
         layout2 = self.ui_manager.add(arcade.gui.UIAnchorLayout())
 
-        layout2.add(self.scroll_right_button, 
+        layout2.add(self.scroll_right_button,
                     anchor_x="right",
                     anchor_y="bottom",)
 
@@ -192,17 +211,6 @@ class GameView(arcade.View):
 
             card_sprite.alpha = 150
 
-    def __draw_score(self):
-        first_player_score_text = f"First player score: {self.game.get_first_player_win_rounds()}"
-        arcade.draw_text(first_player_score_text, 10,
-                         self.window.height - 20, arcade.color.WHITE, 14)
-        second_player_score_text = f"Second player score: {self.game.get_second_player_win_rounds()}"
-        arcade.draw_text(second_player_score_text, 10,
-                         self.window.height - 40, arcade.color.WHITE, 14)
-        rounds_left_text = f"Rounds left: {self.game.state.rounds_left}"
-        arcade.draw_text(rounds_left_text, 10,
-                         self.window.height - 60, arcade.color.WHITE, 14)
-        
     def __select_cards(self, cards):
         self.first_player_selected_cards = []
 
@@ -231,11 +239,12 @@ class GameView(arcade.View):
                 card_width / 2, card_height / 2 + y
 
         cards_sprites.draw()
-    
+
     def __draw_first_player_selected_cards(self):
         first_player_selected_cards_sprites = arcade.SpriteList()
         for card in self.first_player_selected_cards:
-            first_player_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
+            first_player_selected_cards_sprites.append(
+                CardSprite(card, is_face_up=True))
 
         _, card_height = CardSprite.card_sprite_size()
         self.__draw_cards_in_the_center(first_player_selected_cards_sprites, (
