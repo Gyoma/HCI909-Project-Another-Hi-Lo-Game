@@ -51,7 +51,7 @@ class ObservableVoiceRecognizer(metaclass=SingletonMeta):
 
     def __convert_voice_to_text(self, recognizer, audio):
         try:
-            text = recognizer.recognize_whisper(audio)
+            text = recognizer.recognize_whisper(audio, language="english")
         except sr.UnknownValueError:
             text = ""
         except sr.RequestError as e:
