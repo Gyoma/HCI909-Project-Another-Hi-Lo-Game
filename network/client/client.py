@@ -2,8 +2,8 @@ import os
 import asyncio
 import janus
 
-from network.common import server_constants
-from network.common import server_helper
+from common import constants
+from network.common.connection_command import ConnectionCommand
 
 class Client:
     def __init__(self, client_read_queue, client_write_queue):
@@ -14,7 +14,7 @@ class Client:
     async def connect(self, host, delay = 0):
         await asyncio.sleep(delay)
 
-        self.connection_reader, self.connection_writer = await asyncio.open_connection(host, server_constants.SERVER_PORT)
+        self.connection_reader, self.connection_writer = await asyncio.open_connection(host, constants.SERVER_PORT)
         
         self.is_connected = True
         
@@ -62,7 +62,7 @@ class Client:
             if not request:
                 break
 
-            command = server_helper.parse_command(request)
+            command = ConnectionCommand.parse_command(request)
             
             if command is not None:
                 await read_queue.put(command)

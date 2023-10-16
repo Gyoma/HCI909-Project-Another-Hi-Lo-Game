@@ -2,9 +2,11 @@ import arcade
 import arcade.gui
 
 from game.gamemodel import GameModel
-from cards.card import Card
+from common.card import Card
 from interface.cardsprite import CardSprite
 from interface.roundresultview import RoundResultView
+
+from common import constants
 
 from game import cardgame
 from network.common.connection_command import ConnectionCommand
@@ -27,10 +29,7 @@ class GameView(arcade.View):
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
 
-        # self.move_cards = False
         self.move_cards_direction = 0
-        # self.move_task = None
-
         self.setup()
 
     def setup(self):
@@ -44,38 +43,15 @@ class GameView(arcade.View):
 
         @ready_to_proceed_button.event("on_click")
         def on_click_flatbutton(event):
-            if (len(self.player_selected_cards_sprites) != GameModel.CARDS_USED_PER_ROUND):
+            if (len(self.player_selected_cards_sprites) != constants.REQ_NUM_OF_CARDS_FOR_ROUND):
                 return
-
-            # second_player_selected_cards = random.sample(
-            #     self.game.get_second_player_available_cards(), GameLogic.CARDS_USED_PER_ROUND)
-
-            # card_width, card_height = CardSprite.card_sprite_size()
-
-            # self.second_player_selected_cards_sprites.clear()
-            # for i, card in enumerate(second_player_selected_cards):
-            #     card_sprite = CardSprite(card)
-            #     card_sprite.face_up()
-            #     card_sprite.position = (i + 0.5) * \
-            #         card_width, card_height / 2 + 300
-            #     self.second_player_selected_cards_sprites.append(card_sprite)
 
             player_selected_cards = list(map(lambda card_sprite: card_sprite.card,
                                              self.player_selected_cards_sprites))
             
-            args = [str(card.suit)[0] + str(card.rank) for card in player_selected_cards]
+            args = [card.suit.name + '-' + card.rank.name for card in player_selected_cards]
 
-            self.game.client.write_queue.sync_q.put(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
-
-            # round_result = self.game.proceed_round(
-            #     list(map(lambda card_sprite: card_sprite.card,
-            #              self.first_player_selected_cards_sprites)), second_player_selected_cards)
-
-            # self.__update_first_player_cards()
-
-            # self.window.show_view(RoundResultView(
-            #     self.game, first_player_selected_cards, second_player_selected_cards, round_result))
-            # self.window.current_view.setup()
+            self.game.model.process_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
 
         layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
 
@@ -97,12 +73,6 @@ class GameView(arcade.View):
     def on_update(self, delta_time: float):
         self.all_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
 
-        read_queue = self.game.client.read_queue.sync_q
-
-        while not read_queue.empty():
-            print(read_queue.get().pack())
-            read_queue.task_done()
-
         return super().on_update(delta_time)
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -120,7 +90,7 @@ class GameView(arcade.View):
         
         for card in cards:
             if (not card in self.player_selected_cards_sprites):
-                if (len(self.player_selected_cards_sprites) == GameModel.CARDS_USED_PER_ROUND):
+                if (len(self.player_selected_cards_sprites) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
                     return
 
                 card.position = card.position[0], card.position[1] + 20

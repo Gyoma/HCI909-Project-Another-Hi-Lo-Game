@@ -1,12 +1,15 @@
+import os
 import arcade
 
-FACE_DOWN_IMAGE = ":resources:images/cards/cardBack_red2.png"
+current_folder = os.path.dirname(os.path.abspath(__file__))
+
+FACE_DOWN_IMAGE = os.path.join(current_folder, 'imgs', 'CARD-BACK.png')
 
 class CardSprite(arcade.Sprite):
     def __init__(self, card, is_face_up = False):
         self.card = card
 
-        self.image_file_name = f":resources:images/cards/card{self.card.suit}{self.card.rank}.png"
+        self.image_file_name = os.path.join(current_folder, 'imgs', f'{self.card.suit}-{self.card.rank}.png')
 
         super().__init__(FACE_DOWN_IMAGE, 1, hit_box_algorithm="None")
 

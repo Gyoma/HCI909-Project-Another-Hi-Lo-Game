@@ -7,6 +7,7 @@ def start_game(event_loop, client_read_queue, client_write_queue):
     cardgame.init(event_loop, client_read_queue, client_write_queue)
     
     game = cardgame.game()
+    game.setup()
     game.run()
     game.clean()
 

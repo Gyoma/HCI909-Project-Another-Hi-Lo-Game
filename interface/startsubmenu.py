@@ -2,7 +2,7 @@ import arcade
 import arcade.gui
 from game import cardgame
 
-from interface import uiconstants
+from common import constants
 from interface.gameview import GameView
 
 DARK_AMAZON = arcade.types.Color(35, 73, 52)
@@ -17,8 +17,8 @@ class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
 
         # Setup frame which will act like the window.
         frame = self.add(arcade.gui.UIAnchorLayout(
-            width=uiconstants.MIN_WINDOW_WIDTH, 
-            height=uiconstants.MIN_WINDOW_HEIGHT, 
+            width=constants.MIN_WINDOW_WIDTH, 
+            height=constants.MIN_WINDOW_HEIGHT, 
             size_hint=None))
         frame.with_padding(all=20)
 
@@ -60,8 +60,8 @@ class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
         def on_click_back_button(event):
             game = cardgame.game()
             
-            game.start_server()
-            game.connect()
+            game.model.start_server()
+            game.model.connect()
 
             arcade.get_window().show_view(GameView())
             self.parent.remove(self)

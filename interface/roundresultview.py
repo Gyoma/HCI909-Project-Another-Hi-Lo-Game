@@ -1,5 +1,5 @@
 from game.gamemodel import GameModel
-from cards.card import Card
+from common.card import Card
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
 
@@ -10,21 +10,20 @@ import arcade.gui
 
 SELECTED_CARD_VERTICAL_INDENT = 300
 
-
 class RoundResultView(arcade.View):
-    def __init__(self, game, first_player_selected_cards, second_player_selected_cards, round_result):
+    def __init__(self, game, player_selected_cards, opponent_selected_cards, round_result):
         super().__init__()
 
         self.game = game
         self.round_result = round_result
 
-        self.first_player_selected_cards_sprites = arcade.SpriteList()
-        for card in first_player_selected_cards:
-            self.first_player_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
+        self.player_selected_cards_sprites = arcade.SpriteList()
+        for card in player_selected_cards:
+            self.player_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
 
-        self.second_player_selected_cards_sprites = arcade.SpriteList()
-        for card in second_player_selected_cards:
-            self.second_player_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
+        self.opponent_selected_cards_sprites = arcade.SpriteList()
+        for card in opponent_selected_cards:
+            self.opponent_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
@@ -77,8 +76,8 @@ class RoundResultView(arcade.View):
     def on_draw(self):
         self.clear()
 
-        self.__draw_first_player_selected_cards()
-        self.__draw_second_player_selected_cards()
+        self.__draw_player_selected_cards()
+        self.__draw_opponent_selected_cards()
         self.ui_manager.draw()
 
         self.__draw_score()
@@ -108,12 +107,12 @@ class RoundResultView(arcade.View):
 
         cards_sprites.draw()
 
-    def __draw_first_player_selected_cards(self):
+    def __draw_player_selected_cards(self):
         _, card_height = CardSprite.card_sprite_size()
-        self.__draw_cards_in_the_center(self.first_player_selected_cards_sprites, (
+        self.__draw_cards_in_the_center(self.player_selected_cards_sprites, (
             self.window.height - card_height - SELECTED_CARD_VERTICAL_INDENT) / 2)
 
-    def __draw_second_player_selected_cards(self):
+    def __draw_opponent_selected_cards(self):
         _, card_height = CardSprite.card_sprite_size()
-        self.__draw_cards_in_the_center(self.second_player_selected_cards_sprites, (
+        self.__draw_cards_in_the_center(self.opponent_selected_cards_sprites, (
             self.window.height - card_height + SELECTED_CARD_VERTICAL_INDENT) / 2)

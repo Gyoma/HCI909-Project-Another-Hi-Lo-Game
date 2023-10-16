@@ -1,28 +1,30 @@
 import os
 import asyncio
+from common.card import Card
 from network.common.connection_command import ConnectionCommand
 
 from network.server.player import Player
-from network.common import server_constants
-from network.common import server_helper
+from common import constants
+
+import random
 
 class GameBackend:
     def __init__(self):
         self.players = {}
         self.command_handlers = {
             ConnectionCommand.Command.COMPETE.name : {
-                'handler' : self._compete_command,
-                'sync' : asyncio.Barrier(server_constants.REQ_NUM_OF_PLAYERS),
+                'handler' : self.__compete_command,
+                'sync' : asyncio.Barrier(constants.REQ_NUM_OF_PLAYERS),
                 'req_opp' : True
             },
             ConnectionCommand.Command.USED_CARDS.name : {
-                'handler' : self._used_cards_command,
+                'handler' : self.__used_cards_command,
                 'req_opp' : False
             }
         }
 
     async def player_connected(self, reader, writer):
-        player_ip = writer.transport.get_extra_info('peername')[0]
+        player_ip = writer.transport.get_extra_info('peername')[0] + str(random.randint(0, 1000))
 
         player = None
 
@@ -51,7 +53,7 @@ class GameBackend:
             request = request.decode('utf8').strip()
 
             # Client disconnected
-            if not request or request == 'quit':
+            if not request:
                 if (player.command_task is not None) and (not player.command_task.cancelled()):
                     try:
                         player.command_task.cancel()
@@ -68,24 +70,24 @@ class GameBackend:
                     if task.cancelled():
                         return
                     
-                    asyncio.create_task(self._reply(writer, task.result()))
+                    asyncio.create_task(self.__reply(writer, task.ERROR()))
 
-                command = server_helper.parse_command(request)
+                command = ConnectionCommand.parse_command(request)
 
-                player.command_task = asyncio.create_task(self._handle_request(player, command))
+                player.command_task = asyncio.create_task(self.__handle_request(player, command))
                 player.command_task.add_done_callback(done_callback)
                 
                 if command is not None:
                     player.command_task.set_name(command.name()) # just to make it more handy
 
             else:
-                await self._reply(writer, ConnectionCommand(ConnectionCommand.Command.STATUS, ['Waiting your opponent']))
+                await self.__reply(writer, ConnectionCommand(ConnectionCommand.Command.STATUS, ['Waiting your opponent']))
 
         writer.close()
         await writer.wait_closed()
 
         # Creating timer task to remove player's data
-        player.disconnect_task = asyncio.create_task(asyncio.sleep(server_constants.DISCONNECT_TIMEOUT_SEC))
+        player.disconnect_task = asyncio.create_task(asyncio.sleep(constants.DISCONNECT_TIMEOUT_SEC))
 
         def disconnect_callback(task):
             player.disconnect_task = None
@@ -100,40 +102,48 @@ class GameBackend:
         player.disconnect_task.add_done_callback(disconnect_callback)
         
 
-    async def _reply(self, writer, command):
+    async def __reply(self, writer, command):
         writer.write(command.pack())
         await writer.drain()
 
-    async def _handle_request(self, player, command):
+    async def __handle_request(self, player, command):
         if command is None:
-            return ConnectionCommand(ConnectionCommand.Command.RESULT, ['Bad command'])
+            return ConnectionCommand(ConnectionCommand.Command.ERROR, ['Bad command'])
         
         return await self.command_handlers.get(command.name()).get('handler')(player, command.args())
 
-    async def _compete_command(self, player, cards):
-        if len(cards) != server_constants.REQ_NUM_OF_CARDS:
-            return ConnectionCommand(ConnectionCommand.Command.RESULT,
-                [f'Req. num of cards is {server_constants.REQ_NUM_OF_CARDS}, but got {len(cards)}'])
+    async def __compete_command(self, player, args):
+        if len(args) != constants.REQ_NUM_OF_CARDS_FOR_ROUND:
+            return ConnectionCommand(ConnectionCommand.Command.ERROR,
+                [f'Req. num of cards is {constants.REQ_NUM_OF_CARDS_FOR_ROUND}, but got {len(cards)}'])
 
-        for card in cards:
-            if not server_helper.is_card(card):
-                return ConnectionCommand(ConnectionCommand.Command.RESULT, [f'Card is expected, but got {card}'])
+        cards = []
+
+        for arg in args:
+            if not self.__is_card(arg):
+                return ConnectionCommand(ConnectionCommand.Command.ERROR, [f'Card is expected, but got {card}'])
             
+            suit, rank = self.__get_suit_rank(arg)
+
+            card = Card(Card.Suit[constants.FULL_SUITS[suit]], Card.Rank[constants.FULL_RANKS[rank]])
+
             if await player.card_used(card):
-                return ConnectionCommand(ConnectionCommand.Command.RESULT, [f'Card is already used: {card}'])
+                return ConnectionCommand(ConnectionCommand.Command.ERROR, [f'Card is already used: {card}'])
+            
+            cards.append(card)
             
         player.set_cards(cards)
             
-        await self._reply(player.writer, ConnectionCommand(ConnectionCommand.Command.STATUS, ['Waiting your opponent']))
+        await self.__reply(player.writer, ConnectionCommand(ConnectionCommand.Command.STATUS, ['Waiting your opponent']))
 
         barrier = self.command_handlers.get(ConnectionCommand.Command.COMPETE.name).get('sync')
 
         await barrier.wait()
         
-        opponent = self._get_opponent(player)
+        opponent = self.__get_opponent(player)
 
         if opponent is None:
-            return ConnectionCommand(ConnectionCommand.Command.RESULT, 'No opponent found')
+            return ConnectionCommand(ConnectionCommand.Command.ERROR, ['No opponent found'])
         
         res = await player.compete(opponent)
 
@@ -141,19 +151,25 @@ class GameBackend:
         await player.update()
 
         if res == 1:
-            return 'win'
+            return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['win'])
         if res == -1:
-            return 'loss'
+            return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['loss'])
         
-        return 'draw'
+        return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['draw'])
 
-    async def _used_cards_command(self, player, args):
+    async def __used_cards_command(self, player, args):
         if len(player.used_cards) == 0:
-            return ConnectionCommand(ConnectionCommand.Command.RESULT, 'No used cards')
+            return ConnectionCommand(ConnectionCommand.Command.ERROR, ['No used cards'])
         
-        return ConnectionCommand(ConnectionCommand.Command.RESULT, ' '.join(player.used_cards))
+        return ConnectionCommand(ConnectionCommand.Command.USED_CARDS_RES, player.used_cards)
+    
+    def __is_card(self, challenger):
+        return challenger in constants.CARD_NAMES
 
-    def _get_opponent(self, player):
+    def __get_suit_rank(self, card):
+        return card[0], card[1:]
+
+    def __get_opponent(self, player):
         for key, value in self.players.items():
             if key != player.ip:
                 return value

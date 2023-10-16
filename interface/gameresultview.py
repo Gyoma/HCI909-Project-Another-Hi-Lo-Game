@@ -1,13 +1,11 @@
 from game.gamemodel import GameModel
-from cards.card import Card
+from common.card import Card
 from interface.cardsprite import CardSprite
 
 from interface import gameview
 
 import arcade
 import arcade.gui
-
-SELECTED_CARD_VERTICAL_INDENT = 300
 
 class GameResultView(arcade.View):
     def __init__(self, game_result):
