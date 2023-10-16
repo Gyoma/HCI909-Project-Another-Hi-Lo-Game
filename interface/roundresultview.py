@@ -1,4 +1,4 @@
-from game.gamelogic import GameLogic
+from game.gamemodel import GameModel
 from cards.card import Card
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
@@ -29,14 +29,16 @@ class RoundResultView(arcade.View):
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
 
+        self.setup()
+
     def setup(self):
         round_result_text = "It's a draw"
         match self.round_result:
-            case GameLogic.Result.FIRST_PLAYER_WINS:
+            case GameModel.Result.FIRST_PLAYER_WINS:
                 round_result_text = "First player wins"
-            case GameLogic.Result.SECOND_PLAYER_WINS:
+            case GameModel.Result.SECOND_PLAYER_WINS:
                 round_result_text = "Second player wins"
-            case GameLogic.Result.DRAW:
+            case GameModel.Result.DRAW:
                 round_result_text = "It's a draw"
 
         round_result_label = arcade.gui.UILabel(
@@ -46,8 +48,6 @@ class RoundResultView(arcade.View):
         )
 
         next_button = arcade.gui.UIFlatButton(
-            center_x=300,
-            center_y=100,
             width=200,
             height=40,
             text="Next",
@@ -57,11 +57,9 @@ class RoundResultView(arcade.View):
         def on_click_flatbutton(event):
             if (self.game.state.rounds_left == 0):
                 self.window.show_view(GameResultView(self.game.get_result()))
-                self.window.current_view.setup()
                 return
 
             self.window.show_view(gameview.GameView(self.game))
-            self.window.current_view.setup()
 
         vertical_box = arcade.gui.UIBoxLayout()
         vertical_box.add(round_result_label)

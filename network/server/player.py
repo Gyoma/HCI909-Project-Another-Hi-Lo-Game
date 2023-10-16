@@ -1,4 +1,4 @@
-import constants
+from network.common import server_constants
 
 class Player:
     def __init__(self, ip, reader, writer):
@@ -24,8 +24,8 @@ class Player:
             _, my_rank = self._get_suit_rank(my_card)
             _, other_rank = self._get_suit_rank(other_card)
 
-            my_rank = constants.RANK_VALUES[my_rank]
-            other_rank = constants.RANK_VALUES[other_rank]
+            my_rank = server_constants.RANK_VALUES[my_rank]
+            other_rank = server_constants.RANK_VALUES[other_rank]
 
             if my_rank > other_rank:
                 beat += 1

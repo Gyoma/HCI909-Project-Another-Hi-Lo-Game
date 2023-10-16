@@ -1,18 +1,22 @@
-from interface.mainmenuview import MainMenuView
+import asyncio
+import janus 
 
-import arcade
+from game import cardgame
 
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+def start_game(event_loop, client_read_queue, client_write_queue):
+    cardgame.init(event_loop, client_read_queue, client_write_queue)
+    
+    game = cardgame.game()
+    game.run()
+    game.clean()
 
-MIN_WINDOW_WIDTH = 640
-MIN_WINDOW_HEIGHT = 360
+async def main():
+    loop = asyncio.get_running_loop()
 
-def main():
-    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title="Another Hi-Lo Game", resizable=True)
-    window.set_min_size(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
-    window.show_view(MainMenuView())
-    arcade.run()
+    client_read_queue = janus.Queue()
+    client_write_queue = janus.Queue()
 
-if __name__ == "__main__":
-    main()
+    await asyncio.to_thread(start_game, loop, client_read_queue, client_write_queue)
+
+if __name__ == "__main__":    
+    asyncio.run(main())

@@ -1,4 +1,4 @@
-from game.gamelogic import GameLogic
+from game.gamemodel import GameModel
 from cards.card import Card
 from interface.cardsprite import CardSprite
 
@@ -9,7 +9,6 @@ import arcade.gui
 
 SELECTED_CARD_VERTICAL_INDENT = 300
 
-
 class GameResultView(arcade.View):
     def __init__(self, game_result):
         super().__init__()
@@ -19,14 +18,16 @@ class GameResultView(arcade.View):
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
 
+        self.setup()
+
     def setup(self):
         game_result_text = "It's a draw"
         match self.game_result:
-            case GameLogic.Result.FIRST_PLAYER_WINS:
+            case GameModel.Result.FIRST_PLAYER_WINS:
                 game_result_text = "First player wins"
-            case GameLogic.Result.SECOND_PLAYER_WINS:
+            case GameModel.Result.SECOND_PLAYER_WINS:
                 game_result_text = "Second player wins"
-            case GameLogic.Result.DRAW:
+            case GameModel.Result.DRAW:
                 game_result_text = "It's a draw"
 
         game_result_label = arcade.gui.UILabel(
@@ -36,8 +37,6 @@ class GameResultView(arcade.View):
         )
 
         play_again_button = arcade.gui.UIFlatButton(
-            center_x=300,
-            center_y=100,
             width=200,
             height=40,
             text="Play again",
@@ -45,12 +44,9 @@ class GameResultView(arcade.View):
 
         @play_again_button.event("on_click")
         def on_click_flatbutton(event):
-            self.window.show_view(gameview.GameView(GameLogic()))
-            self.window.current_view.setup()
+            self.window.show_view(gameview.GameView(GameModel()))
         
         quit_button = arcade.gui.UIFlatButton(
-            center_x=300,
-            center_y=50,
             width=200,
             height=40,
             text="Quit",
