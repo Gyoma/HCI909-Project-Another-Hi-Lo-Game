@@ -10,10 +10,10 @@ class Player:
         self.command_task = None
         self.disconnect_task = None
 
-    async def card_used(self, card):
-        return await self.cards_used([card])
+    def card_used(self, card):
+        return self.cards_used([card])
 
-    async def cards_used(self, cards):
+    def cards_used(self, cards):
         return any([card in self.used_cards for card in cards])
     
     async def compete(self, player):
@@ -41,6 +41,6 @@ class Player:
     def set_cards(self, cards):
         self.curr_cards = cards
 
-    async def update(self):
+    def update(self):
         self.used_cards.extend(self.curr_cards)
         self.curr_cards = []

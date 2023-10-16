@@ -71,7 +71,7 @@ class GameModel():
         self.client.write_queue.sync_q.put(command)
 
     def __compete_command_res(self, command):
-        pass
+        print(command.pack())
 
     def __used_cards_command(self, command):
         self.client.write_queue.sync_q.put(command)

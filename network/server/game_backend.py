@@ -127,7 +127,7 @@ class GameBackend:
 
             card = Card(Card.Suit[constants.FULL_SUITS[suit]], Card.Rank[constants.FULL_RANKS[rank]])
 
-            if await player.card_used(card):
+            if player.card_used(card):
                 return ConnectionCommand(ConnectionCommand.Command.ERROR, [f'Card is already used: {card}'])
             
             cards.append(card)
@@ -148,7 +148,7 @@ class GameBackend:
         res = await player.compete(opponent)
 
         await barrier.wait()
-        await player.update()
+        player.update()
 
         if res == 1:
             return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['win'])
