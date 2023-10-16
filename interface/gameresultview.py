@@ -1,6 +1,8 @@
 from game.gamelogic import GameLogic
 from cards.card import Card
 from interface.cardsprite import CardSprite
+from interface.settings import Settings
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 from interface import gameview
 
@@ -18,6 +20,12 @@ class GameResultView(arcade.View):
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
+
+        self.voice_command_observer = VoiceCommandObserver(
+            lambda command: self.__handle_voice_command(command))
+
+        self.go_to_next_game = False
+        self.quit = False
 
     def setup(self):
         game_result_text = "It's a draw"
@@ -45,8 +53,7 @@ class GameResultView(arcade.View):
 
         @play_again_button.event("on_click")
         def on_click_flatbutton(event):
-            self.window.show_view(gameview.GameView(GameLogic()))
-            self.window.current_view.setup()
+            self.__new_game()
         
         quit_button = arcade.gui.UIFlatButton(
             center_x=300,
@@ -58,7 +65,7 @@ class GameResultView(arcade.View):
 
         @quit_button.event("on_click")
         def on_click_flatbutton(event):
-            arcade.exit()
+            self.__quit()
 
         vertical_box = arcade.gui.UIBoxLayout()
         vertical_box.add(game_result_label)
@@ -73,8 +80,35 @@ class GameResultView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
+        ObservableVoiceRecognizer(Settings().microphone_id).add_observer(self.voice_command_observer)
+
+    def on_hide_view(self):
+        ObservableVoiceRecognizer(Settings().microphone_id).remove_observer(self.voice_command_observer)
+        return super().on_hide_view()
 
     def on_draw(self):
         self.clear()
 
         self.ui_manager.draw()
+
+    def on_update(self, delta_time: float):
+        if (self.go_to_next_game):
+            self.__new_game()
+            self.go_to_next_game = False
+        elif (self.quit):
+            self.__quit()
+            self.quit = False
+        return super().on_update(delta_time)
+
+    def __new_game(self):
+        self.window.show_view(gameview.GameView(GameLogic()))
+        self.window.current_view.setup()
+    
+    def __quit(self):
+        arcade.exit()
+
+    def __handle_voice_command(self, command):
+        if is_command(command, "play again") or is_command(command, "new game"):
+            self.go_to_next_game = True
+        elif is_command(command, "quit"):
+            self.quit = True
