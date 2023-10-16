@@ -69,7 +69,7 @@ class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
         @connect_button.event("on_click")
         def on_click_back_button(event):
             game = cardgame.game()
-            game.connect(host_text_widget.text)            
+            game.model.connect(host_text_widget.text)            
 
             arcade.get_window().show_view(GameView())
             self.parent.remove(self)

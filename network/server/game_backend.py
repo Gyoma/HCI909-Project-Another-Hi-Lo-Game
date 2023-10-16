@@ -70,7 +70,7 @@ class GameBackend:
                     if task.cancelled():
                         return
                     
-                    asyncio.create_task(self.__reply(writer, task.ERROR()))
+                    asyncio.create_task(self.__reply(writer, task.result()))
 
                 command = ConnectionCommand.parse_command(request)
 
