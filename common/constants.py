@@ -1,3 +1,5 @@
+from enum import Enum
+
 # UI constants
 
 WINDOW_WIDTH = 1280
@@ -5,6 +7,11 @@ WINDOW_HEIGHT = 720
 
 MIN_WINDOW_WIDTH = 640
 MIN_WINDOW_HEIGHT = 360
+
+class RoundResult(Enum):
+    DRAW = 0
+    WIN = 1
+    LOSS = 2
 
 # Server-Client constants
 

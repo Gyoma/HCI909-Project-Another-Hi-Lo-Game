@@ -10,19 +10,9 @@ from network.common.connection_command import ConnectionCommand
 from network.server import server
 
 class GameModel():
-    class Result(Enum):
-        DRAW = 0
-        FIRST_PLAYER_WINS = 1
-        SECOND_PLAYER_WINS = 2
-
     def __init__(self, event_loop, client_read_queue, client_write_queue):
         self.event_loop = event_loop
         self.client = Client(client_read_queue, client_write_queue)
-        
-        self.player_available_cards = self.get_all_cards()
-        self.player_used_cards = []
-        self.player_selected_cards = []
-        self.opponent_selected_cards = []
 
         self.command_handlers = {
             ConnectionCommand.Command.COMPETE.name : self.__compete_command,
@@ -31,6 +21,8 @@ class GameModel():
             ConnectionCommand.Command.USED_CARDS_RES.name : self.__used_cards_command_res,
             ConnectionCommand.Command.STATUS.name : self.__status_command
         }
+
+        self.reset()
 
     def process_command(self, command):
         if command is None:
@@ -56,6 +48,18 @@ class GameModel():
     @classmethod
     def get_all_cards(cls):
         return [Card(suit, rank) for suit, rank in itertools.product(Card.Suit, Card.Rank)]
+    
+
+    def reset(self):
+        self.rounds_passed = 0
+        self.round_result = None
+        self.player_round_wins = 0
+        self.player_round_losses = 0
+
+        self.player_available_cards = self.get_all_cards()
+        self.player_used_cards = []
+        self.player_selected_cards = []
+        self.opponent_selected_cards = []
 
     def __compete_command(self, command):
         cards = command.args()
@@ -71,7 +75,20 @@ class GameModel():
         self.client.write_queue.sync_q.put(command)
 
     def __compete_command_res(self, command):
-        print(command.pack())
+        status, opponent_cards = command.args()
+
+        opponent_cards = opponent_cards.split('-')
+        opponent_cards = [Card(Card.Suit[constants.FULL_SUITS[card[0]]], Card.Rank[constants.FULL_RANKS[card[1:]]]) for card in opponent_cards]
+
+        self.opponent_selected_cards = opponent_cards
+        self.rounds_passed += 1
+        self.round_result = constants.RoundResult[status]
+
+        match self.round_result:
+            case constants.RoundResult.WIN:
+                self.player_round_wins += 1
+            case constants.RoundResult.LOSS:
+                self.player_round_losses += 1
 
     def __used_cards_command(self, command):
         self.client.write_queue.sync_q.put(command)

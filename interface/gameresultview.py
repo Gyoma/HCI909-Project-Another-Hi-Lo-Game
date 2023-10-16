@@ -1,6 +1,4 @@
-from game.gamemodel import GameModel
-from common.card import Card
-from interface.cardsprite import CardSprite
+from game import cardgame
 
 from interface import gameview
 
@@ -8,10 +6,10 @@ import arcade
 import arcade.gui
 
 class GameResultView(arcade.View):
-    def __init__(self, game_result):
+    def __init__(self):
         super().__init__()
 
-        self.game_result = game_result
+        self.game = cardgame.game()
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
@@ -20,13 +18,11 @@ class GameResultView(arcade.View):
 
     def setup(self):
         game_result_text = "It's a draw"
-        match self.game_result:
-            case GameModel.Result.FIRST_PLAYER_WINS:
-                game_result_text = "First player wins"
-            case GameModel.Result.SECOND_PLAYER_WINS:
-                game_result_text = "Second player wins"
-            case GameModel.Result.DRAW:
-                game_result_text = "It's a draw"
+
+        if self.game.model.player_round_wins > self.game.model.player_round_losses:
+            game_result_text = 'You win this game =)'
+        elif self.game.model.player_round_wins < self.game.model.player_round_losses:
+            game_result_text = 'You lose this game =('
 
         game_result_label = arcade.gui.UILabel(
             font_size=32,
@@ -42,7 +38,8 @@ class GameResultView(arcade.View):
 
         @play_again_button.event("on_click")
         def on_click_flatbutton(event):
-            self.window.show_view(gameview.GameView(GameModel()))
+            self.game.model.reset()
+            self.window.show_view(gameview.GameView())
         
         quit_button = arcade.gui.UIFlatButton(
             width=200,
@@ -54,7 +51,7 @@ class GameResultView(arcade.View):
         def on_click_flatbutton(event):
             arcade.exit()
 
-        vertical_box = arcade.gui.UIBoxLayout()
+        vertical_box = arcade.gui.UIBoxLayout(space_between=5)
         vertical_box.add(game_result_label)
         vertical_box.add(play_again_button)
         vertical_box.add(quit_button)

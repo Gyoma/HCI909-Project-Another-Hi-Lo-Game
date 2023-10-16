@@ -4,6 +4,7 @@ import arcade.gui
 from game.gamemodel import GameModel
 from common.card import Card
 from interface.cardsprite import CardSprite
+from interface.gameresultview import GameResultView
 from interface.roundresultview import RoundResultView
 
 from common import constants
@@ -72,6 +73,12 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float):
         self.all_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
+
+        if self.game.model.round_result is not None:
+            if self.game.model.rounds_passed >= constants.MAX_NUM_OF_ROUNDS:
+                self.window.show_view(GameResultView())
+            else:
+                self.window.show_view(RoundResultView())
 
         return super().on_update(delta_time)
 

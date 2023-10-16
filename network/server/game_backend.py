@@ -147,15 +147,18 @@ class GameBackend:
         
         res = await player.compete(opponent)
 
+        opp_cards = [constants.SHORT_SUITS[card.suit.name] + constants.SHORT_RANKS[card.rank.name] for card in opponent.curr_cards]
+        opp_cards = '-'.join(opp_cards)
+
         await barrier.wait()
         player.update()
 
         if res == 1:
-            return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['win'])
+            return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, [constants.RoundResult.WIN.name, opp_cards])
         if res == -1:
-            return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['loss'])
+            return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, [constants.RoundResult.LOSS.name, opp_cards])
         
-        return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, ['draw'])
+        return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, [constants.RoundResult.DRAW.name, opp_cards])
 
     async def __used_cards_command(self, player, args):
         if len(player.used_cards) == 0:

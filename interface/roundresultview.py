@@ -1,5 +1,5 @@
-from game.gamemodel import GameModel
-from common.card import Card
+from common import constants
+from game import cardgame
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
 
@@ -11,18 +11,17 @@ import arcade.gui
 SELECTED_CARD_VERTICAL_INDENT = 300
 
 class RoundResultView(arcade.View):
-    def __init__(self, game, player_selected_cards, opponent_selected_cards, round_result):
+    def __init__(self):
         super().__init__()
 
-        self.game = game
-        self.round_result = round_result
+        self.game = cardgame.game()
 
         self.player_selected_cards_sprites = arcade.SpriteList()
-        for card in player_selected_cards:
+        for card in self.game.model.player_selected_cards:
             self.player_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
 
         self.opponent_selected_cards_sprites = arcade.SpriteList()
-        for card in opponent_selected_cards:
+        for card in self.game.model.opponent_selected_cards:
             self.opponent_selected_cards_sprites.append(CardSprite(card, is_face_up=True))
 
         self.ui_manager = arcade.gui.UIManager()
@@ -32,12 +31,13 @@ class RoundResultView(arcade.View):
 
     def setup(self):
         round_result_text = "It's a draw"
-        match self.round_result:
-            case GameModel.Result.FIRST_PLAYER_WINS:
-                round_result_text = "First player wins"
-            case GameModel.Result.SECOND_PLAYER_WINS:
-                round_result_text = "Second player wins"
-            case GameModel.Result.DRAW:
+        
+        match self.game.model.round_result:
+            case constants.RoundResult.WIN:
+                round_result_text = "You win =)"
+            case constants.RoundResult.LOSS:
+                round_result_text = "You lose =("
+            case constants.RoundResult.DRAW:
                 round_result_text = "It's a draw"
 
         round_result_label = arcade.gui.UILabel(
@@ -54,11 +54,10 @@ class RoundResultView(arcade.View):
 
         @next_button.event("on_click")
         def on_click_flatbutton(event):
-            if (self.game.state.rounds_left == 0):
-                self.window.show_view(GameResultView(self.game.get_result()))
-                return
+            self.game.model.round_result = None
+            self.game.model.opponent_selected_cards = []
 
-            self.window.show_view(gameview.GameView(self.game))
+            self.window.show_view(gameview.GameView())
 
         vertical_box = arcade.gui.UIBoxLayout()
         vertical_box.add(round_result_label)
@@ -80,7 +79,7 @@ class RoundResultView(arcade.View):
         self.__draw_opponent_selected_cards()
         self.ui_manager.draw()
 
-        self.__draw_score()
+        # self.__draw_score()
 
     def __draw_score(self):
         first_player_score_text = f"First player score: {self.game.get_first_player_win_rounds()}"
