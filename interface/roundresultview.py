@@ -2,7 +2,7 @@ from game.gamelogic import GameLogic
 from cards.card import Card
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
-from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 from interface import gameview
 
@@ -143,6 +143,5 @@ class RoundResultView(arcade.View):
         self.window.current_view.setup()
         
     def __handle_voice_command(self, command):
-        lower_command = command.lower()
-        if (lower_command.count("next") > 0):
+        if (is_command(command, "next")):
             self.go_to_next_round = True

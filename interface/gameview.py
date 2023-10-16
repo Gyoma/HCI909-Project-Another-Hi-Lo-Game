@@ -4,7 +4,7 @@ from interface.cardsprite import CardSprite
 from interface.roundresultview import RoundResultView
 from interface.settings import Settings
 from detector.ObservableCardDetector import ObservableCardDetector
-from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 import arcade
 import arcade.gui
@@ -44,7 +44,7 @@ class GameView(arcade.View):
 
         self.voice_command_observer = VoiceCommandObserver(
             lambda command: self.__handle_voice_command(command))
-        
+
         self.player_ready = False
 
     def __del__(self):
@@ -213,11 +213,11 @@ class GameView(arcade.View):
         self.window.current_view.setup()
 
     def __handle_voice_command(self, command):
-        lower_command = command.lower()
-        if (lower_command.count("ready") > 0 or
-            lower_command.count("compete") > 0 or
-            lower_command.count("proceed") > 0 or
-                lower_command.count("attack") > 0):
+        if (is_command(command, "ready") or
+            is_command(command, "compete") or
+            is_command(command, "proceed") or
+            is_command(command, "attack") or
+                is_command(command, "fight")):
             self.player_ready = True
 
     def __draw_cards_in_the_center(self, cards_sprites, y):

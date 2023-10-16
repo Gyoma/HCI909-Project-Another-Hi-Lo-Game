@@ -59,3 +59,6 @@ class ObservableVoiceRecognizer(metaclass=SingletonMeta):
             print("Error; {0}".format(e))
         print(text)
         return text
+    
+def is_command(text, required_command):
+    return text.lower().count(required_command.lower()) > 0
