@@ -1,13 +1,12 @@
 from interface import mainmenuview, camerasnames
-import interface.settings as Settings
-import detector.ObservableCardDetector as ObservableCardDetector
+import game.settings as Settings
 
 import arcade
 import arcade.gui
 
-import cv2
+from game import card_game
 
-import voice_recognition as sr
+import speech_recognition as sr
 
 import locale
 
@@ -37,9 +36,7 @@ class SettingsView(arcade.View):
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
             camera_index = self.__match_camera_to_index(event.new_value)
-            Settings.settings_instance().camera_id = camera_index
-
-            ObservableCardDetector.set_video_source(camera_index)
+            self.game.model.settings.camera_id = camera_index
 
         microphones_list_label = arcade.gui.UILabel(
             font_size=18,
@@ -54,7 +51,7 @@ class SettingsView(arcade.View):
         
         @microphones_list.event("on_change")
         def on_change_dropdown(event):
-            Settings.settings_instance().microphone_id = self.__list_available_microphones().index(event.new_value)
+            self.game.model.settings.microphone_id = self.__list_available_microphones().index(event.new_value)
 
         back_to_menu_button = arcade.gui.UIFlatButton(
             width=200,

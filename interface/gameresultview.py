@@ -1,12 +1,12 @@
 from game import card_game
 
-import interface.settings as Settings
+import game.settings as Settings
 
 from interface import gameview
 
 import arcade
 import arcade.gui
-from interface.settings import Settings
+from game.settings import Settings
 
 # from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver
 

@@ -6,7 +6,6 @@ from common.card import Card
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
 from interface.roundresultview import RoundResultView
-from interface.settings import Settings
 
 from game import card_game
 
@@ -79,12 +78,8 @@ class GameView(arcade.View):
         arcade.set_background_color(arcade.color.AMAZON)
         self.game.model.card_detector.start()
 
-        # self.selected_cards_outdated = True
-
     def on_hide_view(self):
         self.game.model.card_detector.stop()
- 
-#        microphone_id = Settings.settings_instance().microphone_id
 
         return super().on_hide_view()
 
@@ -125,20 +120,6 @@ class GameView(arcade.View):
                 self.scroll_right_button.center_y - self.scroll_right_button.height / 2 <= y <= self.scroll_right_button.center_y + self.scroll_right_button.height / 2):
             self.move_cards_direction = -1.
             return
-
-        # cards = arcade.get_sprites_at_point(
-        #     (x, y), self.player_available_cards_sprites)
-
-        # for card in cards:
-        #     if (not card in self.player_selected_cards_sprites):
-        #         if (len(self.player_selected_cards_sprites) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
-        #             return
-
-        #         card.position = card.position[0], card.position[1] + 20
-        #         self.player_selected_cards_sprites.append(card)
-        #     else:
-        #         card.position = card.position[0], card.position[1] - 20
-        #         self.player_selected_cards_sprites.remove(card)
 
     def on_mouse_release(self, x, y, button, modifiers):
         self.move_cards_direction = 0.
@@ -185,50 +166,6 @@ class GameView(arcade.View):
                 continue
 
             card_sprite.alpha = 150
-
-    # def __select_cards(self, cards):
-    #     self.first_player_selected_cards = []
-
-    #     for card in cards:
-    #         if (len(self.first_player_selected_cards) >= GameLogic.CARDS_USED_PER_ROUND):
-    #             break
-
-    #         if (card in self.first_player_selected_cards):
-    #             continue
-
-    # #         if (card in self.first_player_selected_cards):
-    # #             continue
-
-    #         self.first_player_selected_cards.append(card)
-
-    # def __proseed_round(self):
-    #     first_player_selected_cards = self.first_player_selected_cards.copy()
-
-    # def __proseed_round(self):
-    #     first_player_selected_cards = self.first_player_selected_cards.copy()
-
-    #     if (len(first_player_selected_cards) != GameLogic.CARDS_USED_PER_ROUND):
-    #         return
-
-    #     second_player_selected_cards = random.sample(
-    #         self.game.get_second_player_available_cards(), GameLogic.CARDS_USED_PER_ROUND)
-
-    #     round_result = self.game.proceed_round(
-    #         first_player_selected_cards, second_player_selected_cards)
-
-    #     self.__update_first_player_cards()
-
-    #     self.window.show_view(RoundResultView(
-    #         self.game, first_player_selected_cards, second_player_selected_cards, round_result))
-    #     self.window.current_view.setup()
-
-    def __handle_voice_command(self, command):
-        if (is_command(command, "ready") or
-            is_command(command, "compete") or
-            is_command(command, "proceed") or
-            is_command(command, "attack") or
-                is_command(command, "fight")):
-            self.player_ready = True
 
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
