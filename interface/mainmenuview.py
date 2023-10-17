@@ -1,4 +1,4 @@
-from interface import gameview
+from interface import gameview, settingsmenuview
 
 import arcade
 import arcade.gui
@@ -30,6 +30,17 @@ class MainMenuView(arcade.View):
         @new_game_button.event("on_click")
         def on_click_flatbutton(event):
             self.ui_manager.add(StartSubMenu(), layer=1)
+
+        settings_button = arcade.gui.UIFlatButton(
+            width=200,
+            height=40,
+            text="Settings",
+        )
+
+        @settings_button.event("on_click")
+        def on_click_flatbutton(event):
+            self.window.show_view(settingsmenuview.SettingsView())
+            self.window.current_view.setup()
         
         quit_button = arcade.gui.UIFlatButton(
             width=200,
@@ -44,6 +55,7 @@ class MainMenuView(arcade.View):
         vertical_box = arcade.gui.UIBoxLayout(space_between=5)
         vertical_box.add(app_name_label)
         vertical_box.add(new_game_button)
+        vertical_box.add(settings_button)
         vertical_box.add(quit_button)
 
         layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())

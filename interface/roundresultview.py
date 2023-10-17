@@ -2,6 +2,7 @@ from common import constants
 from game import cardgame
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 from interface import gameview
 
@@ -26,6 +27,11 @@ class RoundResultView(arcade.View):
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
+
+        self.voice_command_observer = VoiceCommandObserver(
+            lambda command: self.__handle_voice_command(command))
+
+        self.go_to_next_round = False
 
         self.setup()
 
@@ -73,6 +79,12 @@ class RoundResultView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
 
+        ObservableVoiceRecognizer().add_observer(self.voice_command_observer)
+
+    def on_hide_view(self):
+        ObservableVoiceRecognizer().remove_observer(self.voice_command_observer)
+        return super().on_hide_view()
+
     def on_draw(self):
         self.clear()
 
@@ -81,6 +93,13 @@ class RoundResultView(arcade.View):
         self.ui_manager.draw()
 
         self.__draw_score()
+
+    def on_update(self, delta_time: float):
+        if (self.go_to_next_round):
+            self.__next()
+            self.go_to_next_round = False
+
+        return super().on_update(delta_time)
 
     def __draw_score(self):
         first_player_score_text = f"Your score: {self.game.model.player_round_wins}"
@@ -116,3 +135,16 @@ class RoundResultView(arcade.View):
         _, card_height = CardSprite.card_sprite_size()
         self.__draw_cards_in_the_center(self.opponent_selected_cards_sprites, (
             self.window.height - card_height + SELECTED_CARD_VERTICAL_INDENT) / 2)
+        
+    def __next(self):
+        if (self.game.state.rounds_left == 0):
+            self.window.show_view(GameResultView(self.game.get_result()))
+            self.window.current_view.setup()
+            return
+
+        self.window.show_view(gameview.GameView(self.game))
+        self.window.current_view.setup()
+        
+    def __handle_voice_command(self, command):
+        if (is_command(command, "next")):
+            self.go_to_next_round = True
