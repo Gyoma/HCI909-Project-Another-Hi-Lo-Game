@@ -65,10 +65,16 @@ class GameModel():
     def __compete_command(self, command):
         cards = command.args()
 
+        if len(self.player_selected_cards) > 0:
+            self.__error_command(ConnectionCommand(ConnectionCommand.Command.ERROR, 
+                                                   ['You\'ve already started a competition']))
+            return
+
         args = []
         for card in cards:
             suit, rank = card.split('-')
             self.player_selected_cards.append(Card(Card.Suit[suit], Card.Rank[rank]))
+            self.player_available_cards.remove(self.player_selected_cards[-1])
             args.append(constants.SHORT_SUITS[suit] + constants.SHORT_RANKS[rank])
         
         command = ConnectionCommand(command.command(), args)
@@ -82,14 +88,15 @@ class GameModel():
         opponent_cards = [Card(Card.Suit[constants.FULL_SUITS[card[0]]], Card.Rank[constants.FULL_RANKS[card[1:]]]) for card in opponent_cards]
 
         self.opponent_selected_cards = opponent_cards
-        self.rounds_passed += 1
-        self.round_result = constants.RoundResult[status]
 
         match self.round_result:
             case constants.RoundResult.WIN:
                 self.player_round_wins += 1
             case constants.RoundResult.LOSS:
                 self.player_round_losses += 1
+
+        self.rounds_passed += 1
+        self.round_result = constants.RoundResult[status]
 
     def __used_cards_command(self, command):
         self.client.write_queue.sync_q.put(command)

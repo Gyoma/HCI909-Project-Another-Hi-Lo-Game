@@ -66,19 +66,21 @@ class GameView(arcade.View):
     def on_draw(self):
         self.clear()
 
-        self.all_cards_sprites.draw()
+        self.player_available_cards_sprites.draw()
         self.ui_manager.draw()
 
-        # self.__draw_score()
+        self.__draw_score()
 
     def on_update(self, delta_time: float):
-        self.all_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
+        self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
 
         if self.game.model.round_result is not None:
             if self.game.model.rounds_passed >= constants.MAX_NUM_OF_ROUNDS:
                 self.window.show_view(GameResultView())
             else:
                 self.window.show_view(RoundResultView())
+
+            self.__update_player_cards()
 
         return super().on_update(delta_time)
 
@@ -137,7 +139,6 @@ class GameView(arcade.View):
     def __update_player_cards(self):
         card_width, card_height = CardSprite.card_sprite_size()
         self.player_selected_cards_sprites.clear()
-
         self.player_available_cards_sprites.clear()
 
         for i, card_sprite in enumerate(self.all_cards_sprites):
@@ -150,12 +151,12 @@ class GameView(arcade.View):
             card_sprite.alpha = 150
 
     def __draw_score(self):
-        first_player_score_text = f"First player score: {self.game.get_first_player_win_rounds()}"
+        first_player_score_text = f"Your score: {self.game.model.player_round_wins}"
         arcade.draw_text(first_player_score_text, 10,
                          self.window.height - 20, arcade.color.WHITE, 14)
-        second_player_score_text = f"Second player score: {self.game.get_second_player_win_rounds()}"
+        second_player_score_text = f"Opponent's score: {self.game.model.player_round_losses}"
         arcade.draw_text(second_player_score_text, 10,
                          self.window.height - 40, arcade.color.WHITE, 14)
-        rounds_left_text = f"Rounds left: {self.game.state.rounds_left}"
+        rounds_left_text = f"Rounds left: {constants.MAX_NUM_OF_ROUNDS - self.game.model.rounds_passed}"
         arcade.draw_text(rounds_left_text, 10,
                          self.window.height - 60, arcade.color.WHITE, 14)

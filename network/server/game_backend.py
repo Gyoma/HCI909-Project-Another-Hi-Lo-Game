@@ -128,7 +128,7 @@ class GameBackend:
             card = Card(Card.Suit[constants.FULL_SUITS[suit]], Card.Rank[constants.FULL_RANKS[rank]])
 
             if player.card_used(card):
-                return ConnectionCommand(ConnectionCommand.Command.ERROR, [f'Card is already used: {card}'])
+                return ConnectionCommand(ConnectionCommand.Command.ERROR, [f'Card is already used: {arg}'])
             
             cards.append(card)
             

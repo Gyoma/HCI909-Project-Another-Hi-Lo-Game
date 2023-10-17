@@ -55,6 +55,7 @@ class RoundResultView(arcade.View):
         @next_button.event("on_click")
         def on_click_flatbutton(event):
             self.game.model.round_result = None
+            self.game.model.player_selected_cards = []
             self.game.model.opponent_selected_cards = []
 
             self.window.show_view(gameview.GameView())
@@ -79,16 +80,16 @@ class RoundResultView(arcade.View):
         self.__draw_opponent_selected_cards()
         self.ui_manager.draw()
 
-        # self.__draw_score()
+        self.__draw_score()
 
     def __draw_score(self):
-        first_player_score_text = f"First player score: {self.game.get_first_player_win_rounds()}"
+        first_player_score_text = f"Your score: {self.game.model.player_round_wins}"
         arcade.draw_text(first_player_score_text, 10,
                          self.window.height - 20, arcade.color.WHITE, 14)
-        second_player_score_text = f"Second player score: {self.game.get_second_player_win_rounds()}"
+        second_player_score_text = f"Opponent's score: {self.game.model.player_round_losses}"
         arcade.draw_text(second_player_score_text, 10,
                          self.window.height - 40, arcade.color.WHITE, 14)
-        rounds_left_text = f"Rounds left: {self.game.state.rounds_left}"
+        rounds_left_text = f"Rounds left: {constants.MAX_NUM_OF_ROUNDS - self.game.model.rounds_passed}"
         arcade.draw_text(rounds_left_text, 10,
                          self.window.height - 60, arcade.color.WHITE, 14)
 
