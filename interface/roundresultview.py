@@ -3,6 +3,8 @@ from game import card_game
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
 
+import interface.settings as Settings
+
 from interface import gameview
 
 import arcade

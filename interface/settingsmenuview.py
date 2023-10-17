@@ -1,7 +1,6 @@
-from game import card_game
-from interface import mainmenuview
-import game.settings as Settings
-import detector.threaded_card_detector as threaded_card_detector
+from interface import mainmenuview, camerasnames
+import interface.settings as Settings
+import detector.ObservableCardDetector as ObservableCardDetector
 
 import arcade
 import arcade.gui
@@ -37,10 +36,10 @@ class SettingsView(arcade.View):
         
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
-            camera_index = int(event.new_value)
-            self.game.model.settings.camera_id = camera_index
+            camera_index = self.__match_camera_to_index(event.new_value)
+            Settings.settings_instance().camera_id = camera_index
 
-            threaded_card_detector.set_video_source(camera_index)
+            ObservableCardDetector.set_video_source(camera_index)
 
         microphones_list_label = arcade.gui.UILabel(
             font_size=18,
@@ -55,7 +54,7 @@ class SettingsView(arcade.View):
         
         @microphones_list.event("on_change")
         def on_change_dropdown(event):
-            self.game.model.settings.microphone_id = self.__list_available_microphones().index(event.new_value)
+            Settings.settings_instance().microphone_id = self.__list_available_microphones().index(event.new_value)
 
         back_to_menu_button = arcade.gui.UIFlatButton(
             width=200,
@@ -89,17 +88,11 @@ class SettingsView(arcade.View):
 
         self.ui_manager.draw()
 
-    def __list_available_cameras(self):
-        available_cameras = []
-        for i in range(10):
-            cap = cv2.VideoCapture(i)
-            if cap.isOpened():
-                available_cameras.append(f"{i}")
-                cap.release()
-            else:
-                break
-        
-        return available_cameras
+    def __list_available_cameras(self):        
+        return list(camerasnames.available_cameras_dict().keys())
+    
+    def __match_camera_to_index(self, camera_name):
+        return camerasnames.available_cameras_dict()[camera_name]
     
     def __list_available_microphones(self):
         microphone_list = sr.Microphone.list_microphone_names()
