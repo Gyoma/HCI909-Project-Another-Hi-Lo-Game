@@ -8,11 +8,13 @@ from network.client.client import Client
 
 from network.common.connection_command import ConnectionCommand
 from network.server import server
+from speech_recog.voice_command_recognizer import VoiceCommandRecognizer
 
 class GameModel():
     def __init__(self, event_loop, client_read_queue, client_write_queue):
         self.event_loop = event_loop
         self.client = Client(client_read_queue, client_write_queue)
+        self.voice_recognizer = VoiceCommandRecognizer()
 
         self.command_handlers = {
             ConnectionCommand.Command.COMPETE.name : self.__compete_command,
