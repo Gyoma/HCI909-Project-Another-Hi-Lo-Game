@@ -34,20 +34,21 @@ class ThreadSafePredictedCardsList:
             return True
 
 
-class ObservableCardDetector(metaclass=SingletonMeta):
-    def __init__(self, vidoe_src=0, buffer_size=DEFAULT_BUFFER_SIZE):
-        self.card_detector = CardDetector(vidoe_src, buffer_size)
+class ObservableCardDetector():
+    def __init__(self, video_source_index=0, buffer_size=DEFAULT_BUFFER_SIZE):
+        self.video_source_index = video_source_index
+        self.buffer_size = buffer_size
+        self.card_detector = CardDetector(self.video_source_index, self.buffer_size)
         self.observers = weakref.WeakSet()
         self.current_cards = ThreadSafePredictedCardsList()
-        self.thread = threading.Thread(target=self.run, daemon=True)
-        self.thread.start()
-        self.stop_thread = False
+        
+        self.__launch_scan_thread()
 
     def __del__(self):
         self.stop()
 
     def run(self):
-        while True:
+        while self.run_thread:
             time.sleep(0.1)
 
             cards_buffer = self.card_detector.detect_cards(draw_data=False)
@@ -56,9 +57,6 @@ class ObservableCardDetector(metaclass=SingletonMeta):
 
             self.current_cards.set_list(cards_buffer)
             self.notify_observers()
-
-            if self.stop_thread:
-                break
 
     def add_observer(self, observer):
         self.observers.add(observer)
@@ -74,15 +72,29 @@ class ObservableCardDetector(metaclass=SingletonMeta):
 
     def get_cards(self):
         return self.__convert_predicted_to_actual_cards(self.current_cards.get_list())
+    
+    def set_video_source(self, video_source_index):
+        self.stop()
 
-    def set_parameters(self, vidoe_src, buffer_size=DEFAULT_BUFFER_SIZE):
-        self.card_detector = None
+        self.video_source_index = video_source_index
 
-        self.card_detector = CardDetector(vidoe_src, buffer_size)
+        self.card_detector = CardDetector(video_source_index, self.buffer_size)
         self.current_cards.set_list([])
 
+        self.__launch_scan_thread()
+
+    def set_buffer_size(self, buffer_size=DEFAULT_BUFFER_SIZE):
+        self.stop()
+
+        self.buffer_size = buffer_size
+
+        self.card_detector = CardDetector(self.video_source_index, buffer_size)
+        self.current_cards.set_list([])
+
+        self.__launch_scan_thread()
+
     def stop(self):
-        self.stop_thread = True
+        self.run_thread = False
         self.thread.join()
         self.card_detector = None
 
@@ -92,3 +104,8 @@ class ObservableCardDetector(metaclass=SingletonMeta):
             cards.append(Card(Card.Suit.from_str(card_predicted.best_suit_match),
                          Card.Rank.from_str(card_predicted.best_rank_match)))
         return cards
+    
+    def __launch_scan_thread(self):
+        self.run_thread = True
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
