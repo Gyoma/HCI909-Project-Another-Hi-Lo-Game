@@ -24,7 +24,10 @@ class GameBackend:
         }
 
     async def player_connected(self, reader, writer):
-        player_ip = writer.transport.get_extra_info('peername')[0] + str(random.randint(0, 1000))
+        player_ip = writer.transport.get_extra_info('peername')[0]
+
+        if constants.DEBUG_SESSION:
+            player_ip += str(random.randint(0, 1000))
 
         player = None
 

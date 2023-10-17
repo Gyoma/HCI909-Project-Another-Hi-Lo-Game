@@ -90,3 +90,5 @@ RANK_VALUES = {
     'K': 13,
     'A': 14
 }
+
+DEBUG_SESSION = True
