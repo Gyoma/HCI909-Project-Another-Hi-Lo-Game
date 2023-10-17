@@ -2,10 +2,11 @@ from game.gamelogic import GameLogic
 from cards.card import Card
 from interface.cardsprite import CardSprite
 from interface.roundresultview import RoundResultView
-from detector.ObservableCardDetector import ObservableCardDetector
-from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 import interface.settings as Settings
+
+import detector.ObservableCardDetector as ObservableCardDetector
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 import arcade
 import arcade.gui
@@ -40,17 +41,17 @@ class GameView(arcade.View):
         self.move_cards = False
         self.move_task = None
 
+        self.player_ready = False
+        self.selected_cards_outdated = True
+
         self.card_observer = CardsChangeObserver(
-            lambda cards: self.__select_cards(cards))
+            lambda _: setattr(self, 'selected_cards_outdated', True))
 
         self.voice_command_observer = VoiceCommandObserver(
             lambda command: self.__handle_voice_command(command))
 
-        self.player_ready = False
-
     def __del__(self):
-        camera_id = Settings.settings_instance().camera_id
-        ObservableCardDetector(camera_id).remove_observer(self.card_observer)
+        ObservableCardDetector.card_detector_instance().remove_observer(self.card_observer)
 
     def setup(self):
         self.__update_first_player_cards()
@@ -88,16 +89,15 @@ class GameView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
 
-        camera_id = Settings.settings_instance().camera_id
-        ObservableCardDetector(camera_id).add_observer(self.card_observer)
+        ObservableCardDetector.card_detector_instance().add_observer(self.card_observer)
 
         microphone_id = Settings.settings_instance().microphone_id
         ObservableVoiceRecognizer(microphone_id).add_observer(self.voice_command_observer)
-        self.__select_cards(ObservableCardDetector(camera_id).get_cards())
+
+        self.selected_cards_outdated = True
 
     def on_hide_view(self):
-        camera_id = Settings.settings_instance().camera_id
-        ObservableCardDetector(camera_id).remove_observer(self.card_observer)
+        ObservableCardDetector.card_detector_instance().remove_observer(self.card_observer)
 
         microphone_id = Settings.settings_instance().microphone_id
         ObservableVoiceRecognizer(microphone_id).remove_observer(self.voice_command_observer)
@@ -130,6 +130,12 @@ class GameView(arcade.View):
         self.move_cards = False
 
     def on_update(self, delta_time: float):
+        if self.selected_cards_outdated:
+            new_selected_cards = ObservableCardDetector.card_detector_instance().get_cards()
+            self.first_player_selected_cards = self.__get_valid_selected_cards(
+                new_selected_cards)
+            self.selected_cards_outdated = False
+
         if self.player_ready:
             self.__proseed_round()
             self.player_ready = False
@@ -182,20 +188,22 @@ class GameView(arcade.View):
 
             card_sprite.alpha = 150
 
-    def __select_cards(self, cards):
-        self.first_player_selected_cards = []
+    def __get_valid_selected_cards(self, cards):
+        first_player_valid_selected_cards = []
 
         for card in cards:
-            if (len(self.first_player_selected_cards) >= GameLogic.CARDS_USED_PER_ROUND):
-                break
-
-            if (card in self.first_player_selected_cards):
+            if (card in first_player_valid_selected_cards):
                 continue
 
             if (not card in self.game.get_first_player_available_cards()):
                 continue
 
-            self.first_player_selected_cards.append(card)
+            first_player_valid_selected_cards.append(card)
+
+            if (len(first_player_valid_selected_cards) >= GameLogic.CARDS_USED_PER_ROUND):
+                break
+
+        return first_player_valid_selected_cards
 
     def __proseed_round(self):
         first_player_selected_cards = self.first_player_selected_cards.copy()

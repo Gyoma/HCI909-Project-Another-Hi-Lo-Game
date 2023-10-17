@@ -8,6 +8,14 @@ import time
 
 DEFAULT_BUFFER_SIZE = 25
 
+_card_detector = None
+
+def card_detector_instance():
+    global _card_detector
+    if _card_detector is None:
+        _card_detector = ObservableCardDetector()
+    return _card_detector
+
 
 class ThreadSafePredictedCardsList:
     def __init__(self):
