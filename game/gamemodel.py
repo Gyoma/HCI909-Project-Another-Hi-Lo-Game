@@ -41,7 +41,7 @@ class GameModel():
         delay = 0
 
         if hasattr(self, "server_task"):
-            delay = 5
+            delay = 3
         
         self.client_task = asyncio.run_coroutine_threadsafe(self.client.connect(host, delay),
                                                             self.event_loop)

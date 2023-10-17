@@ -1,23 +1,45 @@
 import asyncio
 import janus 
+import time
+import threading
 
 from game import cardgame
 
-def start_game(event_loop, client_read_queue, client_write_queue):
-    cardgame.init(event_loop, client_read_queue, client_write_queue)
+client_read_queue = None
+client_write_queue = None
+asyncio_initialized = False
+
+def asyncio_init():
+    global client_read_queue
+    global client_write_queue
+    global asyncio_initialized
+
+    client_read_queue = janus.Queue()
+    client_write_queue = janus.Queue()
+    asyncio_initialized = True
+    
+def asyncio_run(event_loop):
+    asyncio.set_event_loop(event_loop)
+    event_loop.call_soon(asyncio_init)
+    event_loop.run_forever()
+
+def main():
+    global asyncio_initialized
+
+    # Start asyncio event loop in another thread
+    asyncio_event_loop = asyncio.new_event_loop()
+    asyncio_thread = threading.Thread(target=asyncio_run, args=(asyncio_event_loop, ), daemon=True)
+    asyncio_thread.start()
+
+    while not asyncio_initialized:
+        time.sleep(0.2) # yield
+
+    cardgame.init(asyncio_event_loop, client_read_queue, client_write_queue)
     
     game = cardgame.game()
     game.setup()
     game.run()
     game.clean()
 
-async def main():
-    loop = asyncio.get_running_loop()
-
-    client_read_queue = janus.Queue()
-    client_write_queue = janus.Queue()
-
-    await asyncio.to_thread(start_game, loop, client_read_queue, client_write_queue)
-
 if __name__ == "__main__":    
-    asyncio.run(main())
+    main()
