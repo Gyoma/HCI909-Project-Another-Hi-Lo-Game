@@ -19,13 +19,14 @@ class GameModel():
             ConnectionCommand.Command.COMPETE_RES.name : self.__compete_command_res,
             ConnectionCommand.Command.USED_CARDS.name : self.__used_cards_command,
             ConnectionCommand.Command.USED_CARDS_RES.name : self.__used_cards_command_res,
-            ConnectionCommand.Command.STATUS.name : self.__status_command
+            ConnectionCommand.Command.STATUS.name : self.__status_command,
+            ConnectionCommand.Command.ERROR.name : self.__error_command
         }
 
         self.reset()
 
     def process_command(self, command):
-        if command is None:
+        if (command is None) or (not command.name() in self.command_handlers):
             return
         
         self.command_handlers.get(command.name())(command)
@@ -97,4 +98,7 @@ class GameModel():
         pass
 
     def __status_command(self, command):
-        print(command.pack())
+        print(str(command))
+
+    def __error_command(self, command):
+        print(str(command))

@@ -26,9 +26,12 @@ class ConnectionCommand:
     def pack(self):
         return (' '.join([self._command.name, ' '.join(self._args)]) + os.linesep).encode('utf8')
     
+    def __str__(self):
+        return ' '.join([self._command.name, ' '.join(self._args)])
+
     @staticmethod
-    def is_valid(challenger):
-        return challenger in [command.name for command in ConnectionCommand.Command]
+    def is_valid(name : str):
+        return name in [command.name for command in ConnectionCommand.Command]
 
     @staticmethod
     def parse_command(request):

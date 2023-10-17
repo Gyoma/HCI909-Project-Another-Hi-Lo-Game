@@ -107,7 +107,7 @@ class GameBackend:
         await writer.drain()
 
     async def __handle_request(self, player, command):
-        if command is None:
+        if (command is None) or (not command.name() in self.command_handlers):
             return ConnectionCommand(ConnectionCommand.Command.ERROR, ['Bad command'])
         
         return await self.command_handlers.get(command.name()).get('handler')(player, command.args())
