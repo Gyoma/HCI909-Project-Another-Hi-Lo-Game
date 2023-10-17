@@ -1,6 +1,5 @@
 from detector.CardDetector import CardDetector
 from utils.singletonmeta import SingletonMeta
-from cards.card import Card
 
 import weakref
 import threading

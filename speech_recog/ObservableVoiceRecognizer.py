@@ -4,22 +4,27 @@ import speech_recognition as sr
 import weakref
 import threading
 
+import queue
 
-class VoiceCommandObserver():
-    def __init__(self, observer):
-        self.observer = observer
+# class VoiceCommandObserver():
+#     def __init__(self, observer):
+#         self.observer = observer
 
-    def update(self, command):
-        self.observer(command)
+#     def update(self, command):
+#         self.observer(command)
 
 
-class ObservableVoiceRecognizer(metaclass=SingletonMeta):
+class ObservableVoiceRecognizer:
+
     def __init__(self, audio_src=0):
         self.observers = weakref.WeakSet()
         self.recognizer = sr.Recognizer()
         self.audio_src = audio_src
+        
         self.stop_listening = self.recognizer.listen_in_background(
-            sr.Microphone(device_index=self.audio_src), self.notify_observers, phrase_time_limit=2)
+            sr.Microphone(device_index=self.audio_src), self.notify_observers, phrase_time_limit=5)
+        
+        self.phrases_queue = queue.Queue()
 
     def __del__(self):
         self.stop()
@@ -56,7 +61,7 @@ class ObservableVoiceRecognizer(metaclass=SingletonMeta):
             text = ""
         except sr.RequestError as e:
             text = ""
-            print("Error; {0}".format(e))
+            print(f"Error: {e}")
         print(text)
         return text
     

@@ -52,7 +52,7 @@ class GameModel():
     
 
     def reset(self):
-        self.rounds_passed = 0
+        self.rounds_left = constants.MAX_NUM_OF_ROUNDS
         self.round_result = None
         self.player_round_wins = 0
         self.player_round_losses = 0
@@ -89,7 +89,7 @@ class GameModel():
 
         self.opponent_selected_cards = opponent_cards
 
-        self.rounds_passed += 1
+        self.rounds_left -= 1
         self.round_result = constants.RoundResult[status]
 
         match self.round_result:

@@ -4,6 +4,9 @@ from interface import gameview
 
 import arcade
 import arcade.gui
+from interface.settings import Settings
+
+from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver
 
 class GameResultView(arcade.View):
     def __init__(self):

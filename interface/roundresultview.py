@@ -108,7 +108,7 @@ class RoundResultView(arcade.View):
         second_player_score_text = f"Opponent's score: {self.game.model.player_round_losses}"
         arcade.draw_text(second_player_score_text, 10,
                          self.window.height - 40, arcade.color.WHITE, 14)
-        rounds_left_text = f"Rounds left: {constants.MAX_NUM_OF_ROUNDS - self.game.model.rounds_passed}"
+        rounds_left_text = f"Rounds left: {self.game.model.rounds_left}"
         arcade.draw_text(rounds_left_text, 10,
                          self.window.height - 60, arcade.color.WHITE, 14)
 
