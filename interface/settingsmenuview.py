@@ -56,7 +56,7 @@ class SettingsView(arcade.View):
         back_to_menu_button = arcade.gui.UIFlatButton(
             width=200,
             height=40,
-            text="Back to main menu",
+            text="Back",
         )
 
         @back_to_menu_button.event("on_click")
@@ -64,7 +64,7 @@ class SettingsView(arcade.View):
             self.window.show_view(mainmenuview.MainMenuView())
 
 
-        vertical_box = arcade.gui.UIBoxLayout()
+        vertical_box = arcade.gui.UIBoxLayout(space_between=5)
         vertical_box.add(cameras_list_label)
         vertical_box.add(cameras_list)
         vertical_box.add(microphones_list_label)

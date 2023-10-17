@@ -76,12 +76,13 @@ class RoundResultView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-
+        self.game.model.voice_recognizer.start()
 
         return super().on_show_view()
 
     def on_hide_view(self):
-
+        self.game.model.voice_recognizer.stop()
+        
         return super().on_hide_view()
 
     def on_draw(self):

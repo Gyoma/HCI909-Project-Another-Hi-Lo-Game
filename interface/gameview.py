@@ -61,8 +61,8 @@ class GameView(arcade.View):
             width=300,
             align="left",
             multiline=True,
-            text=f"Your score: {self.game.model.player_round_wins}\n"
-            f"Opponent's score: {self.game.model.player_round_losses}\n"
+            text=f"Your score: {self.game.model.player_round_wins}\n" \
+            f"Opponent's score: {self.game.model.player_round_losses}\n" \
             f"Rounds left: {self.game.model.rounds_left}",
         )
 
@@ -77,9 +77,11 @@ class GameView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
         self.game.model.card_detector.start()
+        self.game.model.voice_recognizer.start()
 
     def on_hide_view(self):
         self.game.model.card_detector.stop()
+        self.game.model.voice_recognizer.stop()
 
         return super().on_hide_view()
 
@@ -104,8 +106,8 @@ class GameView(arcade.View):
             self.__update_player_cards()
 
         # Update score label
-        self.score_label.text = f"Your score: {self.game.model.player_round_wins}\n"
-        f"Opponent's score: {self.game.model.player_round_losses}\n"
+        self.score_label.text = f"Your score: {self.game.model.player_round_wins}\n" \
+        f"Opponent's score: {self.game.model.player_round_losses}\n" \
         f"Rounds left: {self.game.model.rounds_left}"
 
         return super().on_update(delta_time)
