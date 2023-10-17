@@ -37,7 +37,7 @@ class SettingsView(arcade.View):
             camera_index = int(event.new_value)
             Settings.settings_instance().camera_id = camera_index
 
-            ObservableCardDetector.card_detector_instance().set_video_source(camera_index)
+            ObservableCardDetector.set_video_source(camera_index)
 
         microphones_list_label = arcade.gui.UILabel(
             font_size=18,

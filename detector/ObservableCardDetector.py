@@ -17,6 +17,14 @@ def card_detector_instance():
         _card_detector = ObservableCardDetector()
     return _card_detector
 
+def set_video_source(video_source_index):
+    global _card_detector
+    if _card_detector is None:
+        _card_detector = ObservableCardDetector(video_source_index)
+        return
+
+    _card_detector.set_video_source(video_source_index)
+
 
 class ThreadSafePredictedCardsList:
     def __init__(self):
