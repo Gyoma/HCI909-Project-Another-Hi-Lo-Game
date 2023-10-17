@@ -1,4 +1,4 @@
-from interface import mainmenuview
+from interface import mainmenuview, camerasnames
 import interface.settings as Settings
 import detector.ObservableCardDetector as ObservableCardDetector
 
@@ -34,7 +34,7 @@ class SettingsView(arcade.View):
         
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
-            camera_index = int(event.new_value)
+            camera_index = self.__match_camera_to_index(event.new_value)
             Settings.settings_instance().camera_id = camera_index
 
             ObservableCardDetector.set_video_source(camera_index)
@@ -86,17 +86,11 @@ class SettingsView(arcade.View):
 
         self.ui_manager.draw()
 
-    def __list_available_cameras(self):
-        available_cameras = []
-        for i in range(10):
-            cap = cv2.VideoCapture(i)
-            if cap.isOpened():
-                available_cameras.append(f"{i}")
-                cap.release()
-            else:
-                break
-        
-        return available_cameras
+    def __list_available_cameras(self):        
+        return list(camerasnames.available_cameras_dict().keys())
+    
+    def __match_camera_to_index(self, camera_name):
+        return camerasnames.available_cameras_dict()[camera_name]
     
     def __list_available_microphones(self):
         microphone_list = sr.Microphone.list_microphone_names()
