@@ -6,7 +6,7 @@ import arcade
 import arcade.gui
 from interface.settings import Settings
 
-from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver
+# from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver
 
 class GameResultView(arcade.View):
     def __init__(self):
@@ -93,15 +93,15 @@ class GameResultView(arcade.View):
             self.quit = False
         return super().on_update(delta_time)
 
-    def __new_game(self):
-        self.window.show_view(gameview.GameView(GameLogic()))
-        self.window.current_view.setup()
+    # def __new_game(self):
+    #     self.window.show_view(gameview.GameView(GameLogic()))
+    #     self.window.current_view.setup()
     
     def __quit(self):
         arcade.exit()
 
-    def __handle_voice_command(self, command):
-        if is_command(command, "play again") or is_command(command, "new game"):
-            self.go_to_next_game = True
-        elif is_command(command, "quit"):
-            self.quit = True
+    # def __handle_voice_command(self, command):
+    #     if is_command(command, "play again") or is_command(command, "new game"):
+    #         self.go_to_next_game = True
+    #     elif is_command(command, "quit"):
+    #         self.quit = True

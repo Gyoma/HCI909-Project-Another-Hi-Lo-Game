@@ -8,7 +8,7 @@ from interface.gameresultview import GameResultView
 from interface.roundresultview import RoundResultView
 # from interface.settings import Settings
 # from detector.ObservableCardDetector import ObservableCardDetector
-# from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
+# from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 # from common import constants
 
@@ -103,22 +103,12 @@ class GameView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-        
-        # ObservableCardDetector(
-        #     Settings().camera_id).add_observer(self.card_observer)
-        
-        # ObservableVoiceRecognizer(
-        #     Settings().microphone_id).add_observer(self.voice_command_observer)
-        
-        # self.__select_cards(ObservableCardDetector(
-        #     Settings().camera_id).get_cards())
+        self.game.model.voice_recognizer.start()
+        return super().on_show_view()
 
-    # def on_hide_view(self):
-    #     ObservableCardDetector(
-    #         Settings().camera_id).remove_observer(self.card_observer)
-    #     ObservableVoiceRecognizer(
-    #         Settings().microphone_id).remove_observer(self.voice_command_observer)
-    #     return super().on_hide_view()
+    def on_hide_view(self):
+        self.game.model.voice_recognizer.stop()
+        return super().on_hide_view()
 
     def on_draw(self):
         self.clear()
@@ -129,8 +119,7 @@ class GameView(arcade.View):
         # self.__draw_first_player_selected_cards()
 
     def on_update(self, delta_time: float):
-        self.player_available_cards_sprites.move(
-            self.move_cards_direction * delta_time * 500, 0)
+        self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
 
         if self.game.model.round_result is not None:
             if self.game.model.rounds_left == 0:
@@ -140,6 +129,7 @@ class GameView(arcade.View):
 
             self.__update_player_cards()
 
+        # Update score label
         self.score_label.text = f"Your score: {self.game.model.player_round_wins}\n"
         f"Opponent's score: {self.game.model.player_round_losses}\n"
         f"Rounds left: {self.game.model.rounds_left}"

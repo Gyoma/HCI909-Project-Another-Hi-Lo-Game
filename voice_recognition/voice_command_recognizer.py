@@ -22,9 +22,11 @@ class VoiceCommand:
 
 class VoiceCommandRecognizer:
 
-    def __init__(self, audio_src = 0):
+    def __init__(self, audio_src = 0, max_queue_size = 3):
         self.recognizer = sr.Recognizer()
         self.audio_src = audio_src
+        self.max_queue_size = max_queue_size
+        self.stop_listening = None
 
         self.vocabulary = [
             VoiceCommand(VoiceVocabulary.COMPETE.name.lower(), 0),
@@ -55,8 +57,10 @@ class VoiceCommandRecognizer:
         self.stop_listening(wait_for_stop=False)
         self.stop_listening = None
 
-    def __process_phrase(self, audio):
+    def __process_phrase(self, recognizer, audio):
         text = self.__convert_voice_to_text(audio)
+
+        print(text)
 
         if not text:
             return
@@ -84,11 +88,15 @@ class VoiceCommandRecognizer:
                 break
 
         if (recognized_command is not None) and (len(recognized_command.args) == recognized_command.nargs):
+            while self.command_queue.qsize() >= self.max_queue_size:
+                task = self.command_queue.get()
+                self.command_queue.task_done()
+
             self.command_queue.put(recognized_command)
 
     def __convert_voice_to_text(self, audio):
         try:
-            text = self.recognizer.recognize_whisper(audio, language="english")
+            text = self.recognizer.recognize_whisper(audio, model='base.en', language="english")
         except sr.UnknownValueError:
             text = ""
 

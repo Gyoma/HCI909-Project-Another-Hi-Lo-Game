@@ -8,7 +8,7 @@ from network.client.client import Client
 
 from network.common.connection_command import ConnectionCommand
 from network.server import server
-from speech_recog.voice_command_recognizer import VoiceCommandRecognizer
+from voice_recognition.voice_command_recognizer import VoiceCommandRecognizer, VoiceVocabulary, VoiceCommand
 
 class GameModel():
     def __init__(self, event_loop, client_read_queue, client_write_queue):
@@ -16,22 +16,32 @@ class GameModel():
         self.client = Client(client_read_queue, client_write_queue)
         self.voice_recognizer = VoiceCommandRecognizer()
 
-        self.command_handlers = {
-            ConnectionCommand.Command.COMPETE.name : self.__compete_command,
-            ConnectionCommand.Command.COMPETE_RES.name : self.__compete_command_res,
-            ConnectionCommand.Command.USED_CARDS.name : self.__used_cards_command,
-            ConnectionCommand.Command.USED_CARDS_RES.name : self.__used_cards_command_res,
-            ConnectionCommand.Command.STATUS.name : self.__status_command,
-            ConnectionCommand.Command.ERROR.name : self.__error_command
+        self.client_command_handlers = {
+            ConnectionCommand.Command.COMPETE.name : self.__client_compete_command,
+            ConnectionCommand.Command.COMPETE_RES.name : self.__client_compete_command_res,
+            ConnectionCommand.Command.USED_CARDS.name : self.__client_used_cards_command,
+            ConnectionCommand.Command.USED_CARDS_RES.name : self.__client_used_cards_command_res,
+            ConnectionCommand.Command.STATUS.name : self.__client_status_command,
+            ConnectionCommand.Command.ERROR.name : self.__client_error_command
+        }
+
+        self.voice_recognizer_command_handlers = {
+            VoiceVocabulary.COMPETE.name : self._voice_compete_command
         }
 
         self.reset()
 
-    def process_command(self, command):
-        if (command is None) or (not command.name() in self.command_handlers):
+    def process_client_command(self, command):
+        if (command is None) or (not command.name() in self.client_command_handlers):
             return
         
-        self.command_handlers.get(command.name())(command)
+        self.client_command_handlers.get(command.name())(command)
+
+    def process_voice_command(self, command : VoiceCommand):
+        if (command is None) or (not command.name in self.voice_recognizer_command_handlers):
+            return
+        
+        self.voice_recognizer_command_handlers.get(command.name)(command)
 
     def start_server(self):
         self.server_task = asyncio.run_coroutine_threadsafe(server.run_server(), self.event_loop)
@@ -64,26 +74,19 @@ class GameModel():
         self.player_selected_cards = []
         self.opponent_selected_cards = []
 
-    def __compete_command(self, command):
+    def __client_compete_command(self, command):
         cards = command.args()
-
-        if len(self.player_selected_cards) > 0:
-            self.__error_command(ConnectionCommand(ConnectionCommand.Command.ERROR, 
-                                                   ['You\'ve already started a competition']))
-            return
 
         args = []
         for card in cards:
             suit, rank = card.split('-')
-            self.player_selected_cards.append(Card(Card.Suit[suit], Card.Rank[rank]))
-            self.player_available_cards.remove(self.player_selected_cards[-1])
             args.append(constants.SHORT_SUITS[suit] + constants.SHORT_RANKS[rank])
         
         command = ConnectionCommand(command.command(), args)
 
         self.client.write_queue.sync_q.put(command)
 
-    def __compete_command_res(self, command):
+    def __client_compete_command_res(self, command):
         status, opponent_cards = command.args()
 
         opponent_cards = opponent_cards.split('-')
@@ -100,14 +103,21 @@ class GameModel():
             case constants.RoundResult.LOSS:
                 self.player_round_losses += 1
 
-    def __used_cards_command(self, command):
+    def __client_used_cards_command(self, command):
         self.client.write_queue.sync_q.put(command)
 
-    def __used_cards_command_res(self, command):
+    def __client_used_cards_command_res(self, command):
         pass
 
-    def __status_command(self, command):
+    def __client_status_command(self, command):
         print(str(command))
 
-    def __error_command(self, command):
+    def __client_error_command(self, command):
         print(str(command))
+
+    def _voice_compete_command(self, command):
+        args = [card.suit.name + '-' + card.rank.name for card in self.player_selected_cards]
+
+        self.process_client_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
+
+    

@@ -2,7 +2,7 @@ from common import constants
 from game import cardgame
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
-from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
+# from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 from interface import gameview
 

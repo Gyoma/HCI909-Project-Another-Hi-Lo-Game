@@ -11,10 +11,16 @@ class GameWindow(arcade.Window):
 
     def on_update(self, delta_time: float):
 
+        # Process network commands
         read_queue = self.game.model.client.read_queue.sync_q
-
         while not read_queue.empty():
-            self.game.model.process_command(read_queue.get())
+            self.game.model.process_client_command(read_queue.get())
             read_queue.task_done()
+
+        # Process voice commands
+        voice_command_queue = self.game.model.voice_recognizer.command_queue
+        while not voice_command_queue.empty():
+            self.game.model.process_voice_command(voice_command_queue.get())
+            voice_command_queue.task_done()
 
         return super().on_update(delta_time)

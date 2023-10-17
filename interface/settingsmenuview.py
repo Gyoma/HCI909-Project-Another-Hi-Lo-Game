@@ -6,7 +6,7 @@ import arcade.gui
 
 import cv2
 
-import speech_recognition as sr
+import voice_recognition as sr
 
 import locale
 
