@@ -1,4 +1,5 @@
 from detector.CardDetector import CardDetector
+from detector.Cards import QueryCard
 from utils.singletonmeta import SingletonMeta
 from cards.card import Card
 
@@ -59,7 +60,10 @@ class ObservableCardDetector():
         while self.run_thread:
             time.sleep(0.1)
 
-            cards_buffer = self.card_detector.detect_cards(draw_data=False)
+            cards_buffer = self.card_detector.buff_detect_cards(draw_data=False)
+            if not self.__is_query_cards_list(cards_buffer):
+                continue
+
             if self.current_cards.is_equal(cards_buffer):
                 continue
 
@@ -117,3 +121,12 @@ class ObservableCardDetector():
         self.run_thread = True
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
+
+    def __is_query_cards_list(self, cards_list):
+        if not isinstance(cards_list, list):
+            return False
+
+        for card in cards_list:
+            if not isinstance(card, QueryCard):
+                return False
+        return True
