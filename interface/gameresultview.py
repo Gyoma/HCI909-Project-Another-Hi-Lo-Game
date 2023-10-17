@@ -1,4 +1,6 @@
-from game import cardgame
+from game import card_game
+
+import interface.settings as Settings
 
 from interface import gameview
 
@@ -12,7 +14,7 @@ class GameResultView(arcade.View):
     def __init__(self):
         super().__init__()
 
-        self.game = cardgame.game()
+        self.game = card_game.game()
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
@@ -73,10 +75,13 @@ class GameResultView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-        ObservableVoiceRecognizer(Settings().microphone_id).add_observer(self.voice_command_observer)
+
+        microphone_id = Settings.settings_instance().microphone_id
+        ObservableVoiceRecognizer(microphone_id).add_observer(self.voice_command_observer)
 
     def on_hide_view(self):
-        ObservableVoiceRecognizer(Settings().microphone_id).remove_observer(self.voice_command_observer)
+        microphone_id = Settings.settings_instance().microphone_id
+        ObservableVoiceRecognizer(microphone_id).remove_observer(self.voice_command_observer)
         return super().on_hide_view()
 
     def on_draw(self):

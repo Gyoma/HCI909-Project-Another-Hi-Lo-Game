@@ -1,34 +1,20 @@
 import arcade
 import arcade.gui
 
-from game.gamemodel import GameModel
+from game.game_model import GameModel
 from common.card import Card
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
 from interface.roundresultview import RoundResultView
-# from interface.settings import Settings
-# from detector.ObservableCardDetector import ObservableCardDetector
-# from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
+from interface.settings import Settings
 
-# from common import constants
-
-from game import cardgame
-from network.common.connection_command import ConnectionCommand
-
-
-class CardsChangeObserver():
-    def __init__(self, observer):
-        self.observer = observer
-
-    def update(self, cards):
-        self.observer(cards)
-
+from game import card_game
 
 class GameView(arcade.View):
     def __init__(self):
         super().__init__()
 
-        self.game = cardgame.game()
+        self.game = card_game.game()
 
         self.player_selected_cards_sprites = arcade.SpriteList()
         self.player_available_cards_sprites = arcade.SpriteList()
@@ -44,19 +30,7 @@ class GameView(arcade.View):
 
         self.move_cards_direction = 0
 
-        # self.card_observer = CardsChangeObserver(
-        #     lambda cards: self.__select_cards(cards))
-
-        # self.voice_command_observer = VoiceCommandObserver(
-        #     lambda command: self.__handle_voice_command(command))
-
-        # self.player_ready = False
-
         self.setup()
-
-    # def __del__(self):
-    #     ObservableCardDetector(
-    #         Settings().camera_id).remove_observer(self.card_observer)
 
     def setup(self):
         self.__update_player_cards()
@@ -103,11 +77,15 @@ class GameView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-        self.game.model.voice_recognizer.start()
-        return super().on_show_view()
+        self.game.model.card_detector.start()
+
+        # self.selected_cards_outdated = True
 
     def on_hide_view(self):
-        self.game.model.voice_recognizer.stop()
+        self.game.model.card_detector.stop()
+ 
+#        microphone_id = Settings.settings_instance().microphone_id
+
         return super().on_hide_view()
 
     def on_draw(self):
@@ -116,10 +94,11 @@ class GameView(arcade.View):
         self.player_available_cards_sprites.draw()
         self.ui_manager.draw()
 
-        # self.__draw_first_player_selected_cards()
+        self.__draw_player_selected_cards()
 
     def on_update(self, delta_time: float):
         self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
+        self.game.model.player_selected_cards = self.game.model.card_detector.get_cards()
 
         if self.game.model.round_result is not None:
             if self.game.model.rounds_left == 0:
@@ -164,15 +143,6 @@ class GameView(arcade.View):
     def on_mouse_release(self, x, y, button, modifiers):
         self.move_cards_direction = 0.
 
-    def on_update(self, delta_time: float):
-        # if self.player_ready:
-        #     self.__proseed_round()
-        #     self.player_ready = False
-
-        self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500., 0)
-
-        return super().on_update(delta_time)
-
     def __init_scroll_widgets(self):
         self.scroll_left_button = arcade.gui.UIFlatButton(
             width=200,
@@ -216,17 +186,6 @@ class GameView(arcade.View):
 
             card_sprite.alpha = 150
 
-    # def __draw_score(self):
-    #     first_player_score_text = f"Your score: {self.game.model.player_round_wins}"
-    #     arcade.draw_text(first_player_score_text, 10,
-    #                      self.window.height - 20, arcade.color.WHITE, 14)
-    #     second_player_score_text = f"Opponent's score: {self.game.model.player_round_losses}"
-    #     arcade.draw_text(second_player_score_text, 10,
-    #                      self.window.height - 40, arcade.color.WHITE, 14)
-    #     rounds_left_text = f"Rounds left: {constants.MAX_NUM_OF_ROUNDS - self.game.model.rounds_passed}"
-    #     arcade.draw_text(rounds_left_text, 10,
-    #                      self.window.height - 60, arcade.color.WHITE, 14)
-
     # def __select_cards(self, cards):
     #     self.first_player_selected_cards = []
 
@@ -237,10 +196,13 @@ class GameView(arcade.View):
     #         if (card in self.first_player_selected_cards):
     #             continue
 
-    #         if (not card in self.game.get_first_player_available_cards()):
-    #             continue
+    # #         if (card in self.first_player_selected_cards):
+    # #             continue
 
     #         self.first_player_selected_cards.append(card)
+
+    # def __proseed_round(self):
+    #     first_player_selected_cards = self.first_player_selected_cards.copy()
 
     # def __proseed_round(self):
     #     first_player_selected_cards = self.first_player_selected_cards.copy()
@@ -270,11 +232,16 @@ class GameView(arcade.View):
 
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
+        
         horizontal_indent = 40
+        
         num_selected_cards = len(cards_sprites)
+        
         total_width = num_selected_cards * card_width + \
             horizontal_indent * (num_selected_cards - 1)
+        
         start_x = (self.window.width - total_width) / 2
+
         for i, card_sprite in enumerate(cards_sprites):
             card_sprite.position = start_x + \
                 (i * (card_width + horizontal_indent)) + \
@@ -282,12 +249,12 @@ class GameView(arcade.View):
 
         cards_sprites.draw()
 
-    def __draw_first_player_selected_cards(self):
-        first_player_selected_cards_sprites = arcade.SpriteList()
-        for card in self.first_player_selected_cards:
-            first_player_selected_cards_sprites.append(
+    def __draw_player_selected_cards(self):
+        player_selected_cards_sprites = arcade.SpriteList()
+        for card in self.game.model.player_selected_cards:
+            player_selected_cards_sprites.append(
                 CardSprite(card, is_face_up=True))
 
         _, card_height = CardSprite.card_sprite_size()
-        self.__draw_cards_in_the_center(first_player_selected_cards_sprites, (
+        self.__draw_cards_in_the_center(player_selected_cards_sprites, (
             self.window.height - card_height) / 2)

@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 import time
 import os
-import detector.Cards as Cards
-import detector.VideoStream as VideoStream
+import detector.cards_helper as cards_helper
+import detector.video_stream as video_stream
 import ultralytics as ul
 
 # from models import model_wrapper
@@ -156,12 +156,12 @@ class CardDetector:
         # See VideoStream.py for VideoStream class definition
         # IF USING USB CAMERA INSTEAD OF PICAMERA,
         # CHANGE THE THIRD ARGUMENT FROM 1 TO 2 IN THE FOLLOWING LINE:
-        self.video_stream = VideoStream.VideoStream((IM_WIDTH, IM_HEIGHT), video_src).start()
+        self.video_stream = video_stream.VideoStream((IM_WIDTH, IM_HEIGHT), video_src)
 
     def __del__(self):
         # Close all windows and close the PiCamera video stream.
-        cv2.destroyAllWindows()
         self.video_stream.stop()
+        cv2.destroyAllWindows()
 
     def buff_detect_cards(self, draw_data = True):
         cards, frame_rate_calc = self._detect_cards_helper()
@@ -231,7 +231,7 @@ class CardDetector:
                 continue
 
             # cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
-            Cards.draw_results(image, card)
+            cards_helper.draw_results(image, card)
             
             # Draw framerate in the corner of the image. Framerate is calculated at the end of the main loop,
             # so the first time this runs, framerate will be shown as 0.
@@ -250,7 +250,7 @@ class CardDetector:
 
         for card in cards:
             cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
-            Cards.draw_results(image, card)
+            cards_helper.draw_results(image, card)
             
             # Draw framerate in the corner of the image. Framerate is calculated at the end of the main loop,
             # so the first time this runs, framerate will be shown as 0.
@@ -271,10 +271,10 @@ class CardDetector:
         t1 = cv2.getTickCount()
 
         # Pre-process camera image (gray, blur, and threshold it)
-        self.pre_proc_image = Cards.preprocess_image(self.image)
+        self.pre_proc_image = cards_helper.preprocess_image(self.image)
 
         # Find and sort the contours of all possible cards in the image (query cards)
-        cnts_sort = Cards.find_possible_cards(self.pre_proc_image)
+        cnts_sort = cards_helper.find_possible_cards(self.pre_proc_image)
 
         # Sort contours by x (from left ro right)
         if len(cnts_sort) > 0:
@@ -296,7 +296,7 @@ class CardDetector:
                 # determines the cards properties (corner points, etc). It generates a
                 # flattened 200x300 image of the card, and isolates the card's
                 # suit and rank from the image.
-                card = Cards.process_card(cnt, self.image, self.card_model)
+                card = cards_helper.process_card(cnt, self.image, self.card_model)
 
                 # Draw center point and match result on the image.
                 if card.is_valid:

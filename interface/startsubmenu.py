@@ -1,6 +1,6 @@
 import arcade
 import arcade.gui
-from game import cardgame
+from game import card_game
 
 from common import constants
 from interface.gameview import GameView
@@ -58,7 +58,7 @@ class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
 
         @create_session_button.event("on_click")
         def on_click_back_button(event):
-            game = cardgame.game()
+            game = card_game.game()
             
             game.model.start_server()
             game.model.connect()
@@ -68,7 +68,7 @@ class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
 
         @connect_button.event("on_click")
         def on_click_back_button(event):
-            game = cardgame.game()
+            game = card_game.game()
             game.model.connect(host_text_widget.text)            
 
             arcade.get_window().show_view(GameView())

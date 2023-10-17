@@ -24,13 +24,21 @@ class VideoStream:
 
 	    # Create a variable to control when the camera is stopped
         self.stopped = False
+        self.thread = None
+        self.start()
+
+    def __del__(self):
+        self.stop()
 
     def start(self):
-	# Start the thread to read frames from the video stream
-        Thread(target=self.update, daemon=True).start()
-        return self
+        self.stop()
+        
+	    # Start the thread to read frames from the video stream
+        self.stopped = False
+        self.thread = Thread(target=self.__update, daemon=True)
+        self.thread.start()
 
-    def update(self):
+    def __update(self):
 
         # Keep looping indefinitely until the thread is stopped
         while True:
@@ -50,3 +58,8 @@ class VideoStream:
     def stop(self):
 		# Indicate that the camera and thread should be stopped
         self.stopped = True
+
+        if self.thread is not None:
+            self.thread.join()
+
+        self.thread = None

@@ -3,7 +3,7 @@ import janus
 import time
 import threading
 
-from game import cardgame
+from game import card_game
 
 client_read_queue = None
 client_write_queue = None
@@ -34,9 +34,9 @@ def main():
     while not asyncio_initialized:
         time.sleep(0.2) # yield
 
-    cardgame.init(asyncio_event_loop, client_read_queue, client_write_queue)
+    card_game.init(asyncio_event_loop, client_read_queue, client_write_queue)
     
-    game = cardgame.game()
+    game = card_game.game()
     game.setup()
     game.run()
     game.clean()

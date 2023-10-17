@@ -4,6 +4,8 @@ from common.card import Card
 from enum import Enum
 
 import itertools
+from detector.threaded_card_detector import ThreadedCardDetector
+from game.settings import Settings
 from network.client.client import Client
 
 from network.common.connection_command import ConnectionCommand
@@ -15,6 +17,8 @@ class GameModel():
         self.event_loop = event_loop
         self.client = Client(client_read_queue, client_write_queue)
         self.voice_recognizer = VoiceCommandRecognizer()
+        self.card_detector = ThreadedCardDetector()
+        self.settings = Settings()
 
         self.client_command_handlers = {
             ConnectionCommand.Command.COMPETE.name : self.__client_compete_command,

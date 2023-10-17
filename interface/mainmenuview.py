@@ -40,7 +40,6 @@ class MainMenuView(arcade.View):
         @settings_button.event("on_click")
         def on_click_flatbutton(event):
             self.window.show_view(settingsmenuview.SettingsView())
-            self.window.current_view.setup()
         
         quit_button = arcade.gui.UIFlatButton(
             width=200,

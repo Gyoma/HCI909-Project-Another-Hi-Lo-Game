@@ -1,5 +1,7 @@
+from game import card_game
 from interface import mainmenuview
-from interface.settings import Settings
+import game.settings as Settings
+import detector.threaded_card_detector as threaded_card_detector
 
 import arcade
 import arcade.gui
@@ -13,6 +15,8 @@ import locale
 class SettingsView(arcade.View):
     def __init__(self):
         super().__init__()
+
+        self.game = card_game.game()
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
@@ -33,7 +37,10 @@ class SettingsView(arcade.View):
         
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
-            Settings().camera_id = int(event.new_value)
+            camera_index = int(event.new_value)
+            self.game.model.settings.camera_id = camera_index
+
+            threaded_card_detector.set_video_source(camera_index)
 
         microphones_list_label = arcade.gui.UILabel(
             font_size=18,
@@ -48,7 +55,7 @@ class SettingsView(arcade.View):
         
         @microphones_list.event("on_change")
         def on_change_dropdown(event):
-            Settings().microphone_id = self.__list_available_microphones().index(event.new_value)
+            self.game.model.settings.microphone_id = self.__list_available_microphones().index(event.new_value)
 
         back_to_menu_button = arcade.gui.UIFlatButton(
             width=200,
@@ -59,7 +66,7 @@ class SettingsView(arcade.View):
         @back_to_menu_button.event("on_click")
         def on_click_flatbutton(event):
             self.window.show_view(mainmenuview.MainMenuView())
-            self.window.current_view.setup()
+
 
         vertical_box = arcade.gui.UIBoxLayout()
         vertical_box.add(cameras_list_label)

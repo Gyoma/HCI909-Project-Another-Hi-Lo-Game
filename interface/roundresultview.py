@@ -1,8 +1,7 @@
 from common import constants
-from game import cardgame
+from game import card_game
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
-# from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
 
 from interface import gameview
 
@@ -15,7 +14,7 @@ class RoundResultView(arcade.View):
     def __init__(self):
         super().__init__()
 
-        self.game = cardgame.game()
+        self.game = card_game.game()
 
         self.player_selected_cards_sprites = arcade.SpriteList()
         for card in self.game.model.player_selected_cards:
@@ -27,9 +26,6 @@ class RoundResultView(arcade.View):
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
-
-        self.voice_command_observer = VoiceCommandObserver(
-            lambda command: self.__handle_voice_command(command))
 
         self.go_to_next_round = False
 
@@ -79,10 +75,11 @@ class RoundResultView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
 
-        ObservableVoiceRecognizer().add_observer(self.voice_command_observer)
+
+        return super().on_show_view()
 
     def on_hide_view(self):
-        ObservableVoiceRecognizer().remove_observer(self.voice_command_observer)
+
         return super().on_hide_view()
 
     def on_draw(self):
@@ -144,7 +141,3 @@ class RoundResultView(arcade.View):
 
         self.window.show_view(gameview.GameView(self.game))
         self.window.current_view.setup()
-        
-    def __handle_voice_command(self, command):
-        if (is_command(command, "next")):
-            self.go_to_next_round = True

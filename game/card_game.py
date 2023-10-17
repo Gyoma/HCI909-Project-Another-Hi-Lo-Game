@@ -3,7 +3,7 @@ import asyncio
 
 import threading
 
-from game.gamemodel import GameModel
+from game.game_model import GameModel
 from interface.game_window import GameWindow
 from network.client.client import Client
 
