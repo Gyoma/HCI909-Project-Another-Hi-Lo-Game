@@ -1,5 +1,6 @@
 from interface import mainmenuview
-from interface.settings import Settings
+import interface.settings as Settings
+import detector.ObservableCardDetector as ObservableCardDetector
 
 import arcade
 import arcade.gui
@@ -33,7 +34,8 @@ class SettingsView(arcade.View):
         
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
-            Settings().camera_id = int(event.new_value)
+            camera_index = int(event.new_value)
+            Settings.settings_instance().camera_id = camera_index
 
         microphones_list_label = arcade.gui.UILabel(
             font_size=18,
@@ -48,7 +50,7 @@ class SettingsView(arcade.View):
         
         @microphones_list.event("on_change")
         def on_change_dropdown(event):
-            Settings().microphone_id = self.__list_available_microphones().index(event.new_value)
+            Settings.settings_instance().microphone_id = self.__list_available_microphones().index(event.new_value)
 
         back_to_menu_button = arcade.gui.UIFlatButton(
             width=200,

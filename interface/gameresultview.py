@@ -1,8 +1,9 @@
 from game.gamelogic import GameLogic
 from cards.card import Card
 from interface.cardsprite import CardSprite
-from interface.settings import Settings
 from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
+
+import interface.settings as Settings
 
 from interface import gameview
 
@@ -80,10 +81,13 @@ class GameResultView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-        ObservableVoiceRecognizer(Settings().microphone_id).add_observer(self.voice_command_observer)
+
+        microphone_id = Settings.settings_instance().microphone_id
+        ObservableVoiceRecognizer(microphone_id).add_observer(self.voice_command_observer)
 
     def on_hide_view(self):
-        ObservableVoiceRecognizer(Settings().microphone_id).remove_observer(self.voice_command_observer)
+        microphone_id = Settings.settings_instance().microphone_id
+        ObservableVoiceRecognizer(microphone_id).remove_observer(self.voice_command_observer)
         return super().on_hide_view()
 
     def on_draw(self):

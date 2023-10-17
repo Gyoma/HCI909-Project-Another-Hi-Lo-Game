@@ -2,9 +2,10 @@ from game.gamelogic import GameLogic
 from cards.card import Card
 from interface.cardsprite import CardSprite
 from interface.roundresultview import RoundResultView
-from interface.settings import Settings
 from detector.ObservableCardDetector import ObservableCardDetector
 from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
+
+import interface.settings as Settings
 
 import arcade
 import arcade.gui
@@ -48,8 +49,8 @@ class GameView(arcade.View):
         self.player_ready = False
 
     def __del__(self):
-        ObservableCardDetector(
-            Settings().camera_id).remove_observer(self.card_observer)
+        camera_id = Settings.settings_instance().camera_id
+        ObservableCardDetector(camera_id).remove_observer(self.card_observer)
 
     def setup(self):
         self.__update_first_player_cards()
@@ -86,18 +87,20 @@ class GameView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
-        ObservableCardDetector(
-            Settings().camera_id).add_observer(self.card_observer)
-        ObservableVoiceRecognizer(
-            Settings().microphone_id).add_observer(self.voice_command_observer)
-        self.__select_cards(ObservableCardDetector(
-            Settings().camera_id).get_cards())
+
+        camera_id = Settings.settings_instance().camera_id
+        ObservableCardDetector(camera_id).add_observer(self.card_observer)
+
+        microphone_id = Settings.settings_instance().microphone_id
+        ObservableVoiceRecognizer(microphone_id).add_observer(self.voice_command_observer)
+        self.__select_cards(ObservableCardDetector(camera_id).get_cards())
 
     def on_hide_view(self):
-        ObservableCardDetector(
-            Settings().camera_id).remove_observer(self.card_observer)
-        ObservableVoiceRecognizer(
-            Settings().microphone_id).remove_observer(self.voice_command_observer)
+        camera_id = Settings.settings_instance().camera_id
+        ObservableCardDetector(camera_id).remove_observer(self.card_observer)
+
+        microphone_id = Settings.settings_instance().microphone_id
+        ObservableVoiceRecognizer(microphone_id).remove_observer(self.voice_command_observer)
         return super().on_hide_view()
 
     def on_draw(self):
