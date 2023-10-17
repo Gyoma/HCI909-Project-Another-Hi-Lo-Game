@@ -141,11 +141,13 @@ class GameView(arcade.View):
         self.player_selected_cards_sprites.clear()
         self.player_available_cards_sprites.clear()
 
-        for i, card_sprite in enumerate(self.all_cards_sprites):
+        i = 0
+        for card_sprite in self.all_cards_sprites:
             card_sprite.face_up()
-            card_sprite.position = (i + 0.5) * card_width, card_height / 2
             if (card_sprite.card in self.game.model.player_available_cards):
+                card_sprite.position = (i + 0.5) * card_width, card_height / 2
                 self.player_available_cards_sprites.append(card_sprite)
+                i += 1
                 continue
 
             card_sprite.alpha = 150

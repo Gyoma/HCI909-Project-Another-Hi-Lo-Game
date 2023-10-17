@@ -89,14 +89,14 @@ class GameModel():
 
         self.opponent_selected_cards = opponent_cards
 
+        self.rounds_passed += 1
+        self.round_result = constants.RoundResult[status]
+
         match self.round_result:
             case constants.RoundResult.WIN:
                 self.player_round_wins += 1
             case constants.RoundResult.LOSS:
                 self.player_round_losses += 1
-
-        self.rounds_passed += 1
-        self.round_result = constants.RoundResult[status]
 
     def __used_cards_command(self, command):
         self.client.write_queue.sync_q.put(command)
