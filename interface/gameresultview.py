@@ -1,23 +1,20 @@
-from game.gamelogic import GameLogic
-from cards.card import Card
-from interface.cardsprite import CardSprite
-from speech_recog.ObservableVoiceRecognizer import ObservableVoiceRecognizer, VoiceCommandObserver, is_command
+from game import card_game
 
-import interface.settings as Settings
+import game.settings as Settings
 
 from interface import gameview
 
 import arcade
 import arcade.gui
+from game.settings import Settings
 
-SELECTED_CARD_VERTICAL_INDENT = 300
-
+# from speech_recog.voice_command_recognizer import ObservableVoiceRecognizer, VoiceCommandObserver
 
 class GameResultView(arcade.View):
-    def __init__(self, game_result):
+    def __init__(self):
         super().__init__()
 
-        self.game_result = game_result
+        self.game = card_game.game()
 
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
@@ -28,15 +25,15 @@ class GameResultView(arcade.View):
         self.go_to_next_game = False
         self.quit = False
 
+        self.setup()
+
     def setup(self):
         game_result_text = "It's a draw"
-        match self.game_result:
-            case GameLogic.Result.FIRST_PLAYER_WINS:
-                game_result_text = "First player wins"
-            case GameLogic.Result.SECOND_PLAYER_WINS:
-                game_result_text = "Second player wins"
-            case GameLogic.Result.DRAW:
-                game_result_text = "It's a draw"
+
+        if self.game.model.player_round_wins > self.game.model.player_round_losses:
+            game_result_text = 'You win this game =)'
+        elif self.game.model.player_round_wins < self.game.model.player_round_losses:
+            game_result_text = 'You lose this game =('
 
         game_result_label = arcade.gui.UILabel(
             font_size=32,
@@ -45,8 +42,6 @@ class GameResultView(arcade.View):
         )
 
         play_again_button = arcade.gui.UIFlatButton(
-            center_x=300,
-            center_y=100,
             width=200,
             height=40,
             text="Play again",
@@ -54,11 +49,10 @@ class GameResultView(arcade.View):
 
         @play_again_button.event("on_click")
         def on_click_flatbutton(event):
-            self.__new_game()
+            self.game.model.reset()
+            self.window.show_view(gameview.GameView())
         
         quit_button = arcade.gui.UIFlatButton(
-            center_x=300,
-            center_y=50,
             width=200,
             height=40,
             text="Quit",
@@ -68,7 +62,7 @@ class GameResultView(arcade.View):
         def on_click_flatbutton(event):
             self.__quit()
 
-        vertical_box = arcade.gui.UIBoxLayout()
+        vertical_box = arcade.gui.UIBoxLayout(space_between=5)
         vertical_box.add(game_result_label)
         vertical_box.add(play_again_button)
         vertical_box.add(quit_button)
@@ -104,15 +98,15 @@ class GameResultView(arcade.View):
             self.quit = False
         return super().on_update(delta_time)
 
-    def __new_game(self):
-        self.window.show_view(gameview.GameView(GameLogic()))
-        self.window.current_view.setup()
+    # def __new_game(self):
+    #     self.window.show_view(gameview.GameView(GameLogic()))
+    #     self.window.current_view.setup()
     
     def __quit(self):
         arcade.exit()
 
-    def __handle_voice_command(self, command):
-        if is_command(command, "play again") or is_command(command, "new game"):
-            self.go_to_next_game = True
-        elif is_command(command, "quit"):
-            self.quit = True
+    # def __handle_voice_command(self, command):
+    #     if is_command(command, "play again") or is_command(command, "new game"):
+    #         self.go_to_next_game = True
+    #     elif is_command(command, "quit"):
+    #         self.quit = True

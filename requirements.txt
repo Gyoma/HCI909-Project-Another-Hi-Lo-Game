@@ -4,6 +4,7 @@ pyaudio
 soundfile
 opencv-python>=4.8.1.78
 ultralytics==8.0.196
-arcade==3.0.0-dev.25
-v4l2 ; sys_platform == 'linux'
+arcade==3.0.0.dev25
+janus
+v4l2py ; sys_platform == 'linux'
 pygrabber ; sys_platform == 'win32'

@@ -1,18 +1,46 @@
-from interface.mainmenuview import MainMenuView
+import asyncio
+import janus 
+import time
+import threading
 
-import arcade
+from game import card_game
 
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+client_read_queue = None
+client_write_queue = None
+asyncio_initialized = False
 
-MIN_WINDOW_WIDTH = 640
-MIN_WINDOW_HEIGHT = 360
+def asyncio_init():
+    global client_read_queue
+    global client_write_queue
+    global asyncio_initialized
+
+    client_read_queue = janus.Queue()
+    client_write_queue = janus.Queue()
+    asyncio_initialized = True
+    
+def asyncio_run(event_loop):
+    asyncio.set_event_loop(event_loop)
+    event_loop.call_soon(asyncio_init)
+    event_loop.run_forever()
 
 def main():
-    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title="Another Hi-Lo Game", resizable=True)
-    window.set_min_size(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
-    window.show_view(MainMenuView())
-    arcade.run()
+    global asyncio_initialized
 
-if __name__ == "__main__":
+    # Start asyncio event loop in another thread
+    asyncio_event_loop = asyncio.new_event_loop()
+    asyncio_thread = threading.Thread(target=asyncio_run, args=(asyncio_event_loop, ), daemon=True)
+    asyncio_thread.start()
+
+    while not asyncio_initialized:
+        time.sleep(0.2) # yield
+
+    card_game.init(asyncio_event_loop, client_read_queue, client_write_queue)
+    
+    game = card_game.game()
+    game.setup()
+    game.run()
+    game.clean()
+
+if __name__ == "__main__":    
     main()
+    
