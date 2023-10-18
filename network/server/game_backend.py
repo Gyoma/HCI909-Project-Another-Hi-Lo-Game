@@ -27,6 +27,7 @@ class GameBackend:
         player_ip = writer.transport.get_extra_info('peername')[0]
 
         if constants.DEBUG_SESSION:
+            print(f'New player connected : {player_ip}')
             player_ip += str(random.randint(0, 1000))
 
         player = None
