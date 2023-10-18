@@ -232,6 +232,11 @@ class GameView(arcade.View):
         if (command.name == VoiceVocabulary.START.name.lower()) \
             and (VoiceVocabulary.START in self.possible_states) \
             and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
+                for card in self.loading_cards:
+                    if not card in self.game.model.player_available_cards:
+                        print(f'You have already used this card: {card}')
+                        return
+                    
                 self.game.model.player_selected_cards = self.loading_cards
                 self.possible_states = [VoiceVocabulary.SWITCH, VoiceVocabulary.READY]
         elif (command.name == VoiceVocabulary.SWITCH.name.lower()) and (VoiceVocabulary.SWITCH in self.possible_states):
