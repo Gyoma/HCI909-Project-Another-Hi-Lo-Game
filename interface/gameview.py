@@ -247,6 +247,8 @@ class GameView(arcade.View):
             self.game.model.process_client_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
             self.possible_states = [VoiceVocabulary.LOAD]
 
+        print(f'Next expected states: {self.possible_states}')
+
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
         
