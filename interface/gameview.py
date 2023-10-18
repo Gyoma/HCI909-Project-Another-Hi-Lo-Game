@@ -59,7 +59,7 @@ class GameView(arcade.View):
             load_button = arcade.gui.UIFlatButton(
                 width=200,
                 height=40,
-                text="Load",
+                text="Start",
             )
 
             switch_button = arcade.gui.UIFlatButton(
