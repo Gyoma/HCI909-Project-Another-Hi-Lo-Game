@@ -16,9 +16,9 @@ class MainMenuView(arcade.View):
 
     def setup(self):
         app_name_label = arcade.gui.UILabel(
-            font_size=72,
+            font_size=48,
             align="center",
-            text="Attack Game",
+            text="Another Hi-Lo Game",
         )
 
         new_game_button = arcade.gui.UIFlatButton(

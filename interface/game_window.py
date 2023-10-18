@@ -6,7 +6,7 @@ from common import constants
 class GameWindow(arcade.Window):
     def __init__(self, game):
         super().__init__(constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, 
-                         title="Attack Game", resizable=True)
+                         title="Another Hi-Lo Game", resizable=True)
         self.game = game
         self.set_min_size(constants.MIN_WINDOW_WIDTH, constants.MIN_WINDOW_HEIGHT)
 
