@@ -3,12 +3,13 @@ from enum import Enum
 
 import queue
 import copy
+import threading
 
 from common import constants
 from game import card_game
 
 class VoiceVocabulary(Enum):
-    LOAD = 0,
+    START = 0,
     READY = 1,
     NEXT = 2,
     SWITCH = 3,
@@ -31,9 +32,11 @@ class VoiceCommandRecognizer:
         self.audio_src = audio_src
         self.max_queue_size = max_queue_size
         self.stop_listening = None
+        self.thread = None
+        self.listening = False
 
         self.vocabulary = [
-            VoiceCommand(VoiceVocabulary.LOAD.name.lower(), 0),
+            VoiceCommand(VoiceVocabulary.START.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.READY.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.NEXT.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.SWITCH.name.lower(), nargs=2, variants=[
@@ -50,28 +53,46 @@ class VoiceCommandRecognizer:
     def start(self):
         self.stop()
 
-        game = card_game.game()
-
-        self.stop_listening = self.recognizer.listen_in_background(
-            sr.Microphone(device_index=self.audio_src), 
-            callback=self.__process_phrase, 
-            phrase_time_limit=5)
+        self.listening = True
+        self.thread = threading.Thread(target=self.__run, daemon=True)
+        self.thread.start()
 
     def stop(self):
-        if self.stop_listening == None:
-            return
+        self.listening = False
         
-        self.stop_listening(wait_for_stop=False)
-        self.stop_listening = None
+        if self.thread is not None:
+            self.thread.join()
 
-    def __process_phrase(self, recognizer, audio):
+        self.thread = None
+
+    def __run(self):
+
+        with sr.Microphone() as source:
+            self.recognizer.adjust_for_ambient_noise(source, duration=2)
+
+            while self.listening:
+                try:  # listen for 1 second, then check again if the stop function has been called
+                    audio = self.recognizer.listen(source, phrase_time_limit=5)
+                    self.__process_phrase(audio)
+                except sr.WaitTimeoutError:  # listening timed out, just try again
+                    pass
+
+            # self.stop_listening = self.recognizer.listen_in_background(
+            #     source, #device_index=self.audio_src), 
+            #     callback=self.__process_phrase, 
+            #     phrase_time_limit=5)
+
+
+    def __process_phrase(self, audio):
+        # print(audio)
+
         text = self.__convert_voice_to_text(audio)
-
-        if constants.DEBUG_SESSION:
-            print(f'You said: {text}')
 
         if not text:
             return
+        
+        if constants.DEBUG_SESSION:
+            print(f'You said: {text}')
         
         recognized_command = None
 

@@ -25,7 +25,7 @@ class GameView(arcade.View):
             VoiceVocabulary.RIGHT.name.lower() : 2
         }
 
-        self.possible_states = [VoiceVocabulary.LOAD]
+        self.possible_states = [VoiceVocabulary.START]
 
         self.player_selected_cards_sprites = arcade.SpriteList()
         self.player_available_cards_sprites = arcade.SpriteList()
@@ -87,7 +87,7 @@ class GameView(arcade.View):
 
             @load_button.event("on_click")
             def on_click_flatbutton(event):
-                self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.LOAD.name.lower(), 0))
+                self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.START.name.lower(), 0))
 
 
             @switch_button.event("on_click")
@@ -139,7 +139,7 @@ class GameView(arcade.View):
         self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
         
         # If we are in loading state
-        if VoiceVocabulary.LOAD in self.possible_states:
+        if VoiceVocabulary.START in self.possible_states:
             self.loading_cards = self.game.model.card_detector.get_cards()
 
         if self.game.model.round_result is not None:
@@ -229,8 +229,8 @@ class GameView(arcade.View):
             card_sprite.alpha = 150
 
     def __process_voice_command(self, command : VoiceCommand):
-        if (command.name == VoiceVocabulary.LOAD.name.lower()) \
-            and (VoiceVocabulary.LOAD in self.possible_states) \
+        if (command.name == VoiceVocabulary.START.name.lower()) \
+            and (VoiceVocabulary.START in self.possible_states) \
             and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
                 self.game.model.player_selected_cards = self.loading_cards
                 self.possible_states = [VoiceVocabulary.SWITCH, VoiceVocabulary.READY]
@@ -247,7 +247,7 @@ class GameView(arcade.View):
             args = [card.suit.name + '-' + card.rank.name for card in self.game.model.player_selected_cards]
 
             self.game.model.process_client_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
-            self.possible_states = [VoiceVocabulary.LOAD]
+            self.possible_states = [VoiceVocabulary.START]
 
         print(f'Next expected states: {self.possible_states}')
 
