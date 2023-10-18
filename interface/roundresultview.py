@@ -1,3 +1,4 @@
+import queue
 from common import constants
 from game import card_game
 from interface.cardsprite import CardSprite
@@ -9,6 +10,8 @@ from interface import gameview
 
 import arcade
 import arcade.gui
+
+from voice_recognition.voice_command_recognizer import VoiceCommand, VoiceVocabulary
 
 SELECTED_CARD_VERTICAL_INDENT = 300
 
@@ -99,6 +102,18 @@ class RoundResultView(arcade.View):
             self.__next()
             self.go_to_next_round = False
 
+        voice_command_queue = queue.Queue()
+        
+        # Process voice commands
+        if constants.DEBUG_SESSION:
+            voice_command_queue = self.debug_voice_queue
+        else:
+            voice_command_queue = self.game.model.voice_recognizer.command_queue
+        
+        while not voice_command_queue.empty():
+            self.__process_voice_command(voice_command_queue.get())
+            voice_command_queue.task_done()
+
         return super().on_update(delta_time)
 
     def __draw_score(self):
@@ -144,3 +159,7 @@ class RoundResultView(arcade.View):
 
         self.window.show_view(gameview.GameView(self.game))
         self.window.current_view.setup()
+
+    def __process_voice_command(self, command : VoiceCommand):
+        if command.name == VoiceVocabulary.NEXT.name.lower():
+            self.go_to_next_round = True
