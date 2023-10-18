@@ -120,7 +120,7 @@ class GameView(arcade.View):
         # Process voice commands
         voice_command_queue = self.game.model.voice_recognizer.command_queue
         while not voice_command_queue.empty():
-            self.game.model.process_voice_command(voice_command_queue.get())
+            self.__process_voice_command(voice_command_queue.get())
             voice_command_queue.task_done()
 
         # Update score label
@@ -190,7 +190,8 @@ class GameView(arcade.View):
     def __process_voice_command(self, command : VoiceCommand):
         if (command.name == VoiceVocabulary.LOAD.name.lower()) \
             and (VoiceVocabulary.LOAD in self.possible_states) \
-            and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
+            and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND) \
+            and (len(self.game.model.player_selected_cards) == 0):
                 self.game.model.player_selected_cards = self.loading_cards
                 self.possible_states = [VoiceVocabulary.SWITCH, VoiceVocabulary.READY]
         elif (command.name == VoiceVocabulary.SWITCH.name.lower()) and (VoiceVocabulary.SWITCH in self.possible_states):
