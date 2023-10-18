@@ -151,12 +151,14 @@ class GameView(arcade.View):
             self.__update_player_cards()
 
         voice_command_queue = queue.Queue()
-        
-        # Process voice commands
-        if constants.DEBUG_SESSION:
-            voice_command_queue = self.debug_voice_queue
-        else:
-            voice_command_queue = self.game.model.voice_recognizer.command_queue
+
+        while not self.debug_voice_queue.empty():
+            voice_command_queue.put(self.debug_voice_queue.get())
+            self.debug_voice_queue.task_done()
+
+        while not self.game.model.voice_recognizer.command_queue.empty():
+            voice_command_queue.put(self.game.model.voice_recognizer.command_queue.get())
+            self.game.model.voice_recognizer.command_queue.task_done()
         
         while not voice_command_queue.empty():
             self.__process_voice_command(voice_command_queue.get())

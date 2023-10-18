@@ -102,13 +102,8 @@ class RoundResultView(arcade.View):
             self.__next()
             self.go_to_next_round = False
 
-        voice_command_queue = queue.Queue()
-        
         # Process voice commands
-        if constants.DEBUG_SESSION:
-            voice_command_queue = self.debug_voice_queue
-        else:
-            voice_command_queue = self.game.model.voice_recognizer.command_queue
+        voice_command_queue = self.game.model.voice_recognizer.command_queue
         
         while not voice_command_queue.empty():
             self.__process_voice_command(voice_command_queue.get())
