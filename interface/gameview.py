@@ -1,3 +1,4 @@
+import queue
 import arcade
 import arcade.gui
 
@@ -41,6 +42,8 @@ class GameView(arcade.View):
         self.move_cards_direction = 0
         self.loading_cards = []
 
+        self.debug_voice_queue = queue.Queue()
+
         self.setup()
 
     def setup(self):
@@ -52,21 +55,51 @@ class GameView(arcade.View):
         #     text="I'm ready",
         # )
 
-        # @ready_to_proceed_button.event("on_click")
-        # def on_click_flatbutton(event):
-        #     if (len(self.player_selected_cards_sprites) != constants.REQ_NUM_OF_CARDS_FOR_ROUND):
-        #         return
+        if constants.DEBUG_SESSION:
+            load_button = arcade.gui.UIFlatButton(
+                width=200,
+                height=40,
+                text="Load",
+            )
 
-        #     player_selected_cards = list(map(lambda card_sprite: card_sprite.card,
-        #                                      self.player_selected_cards_sprites))
+            switch_button = arcade.gui.UIFlatButton(
+                width=200,
+                height=40,
+                text="Switch",
+            )
 
-        #     args = [card.suit.name + '-' +
-        #             card.rank.name for card in player_selected_cards]
+            ready_button = arcade.gui.UIFlatButton(
+                width=200,
+                height=40,
+                text="Ready",
+            )
 
-        #     self.game.model.process_command(ConnectionCommand(
-        #         ConnectionCommand.Command.COMPETE, args))
+            vertical_box = arcade.gui.UIBoxLayout(space_between=5)
+            vertical_box.add(load_button)
+            vertical_box.add(switch_button)
+            vertical_box.add(ready_button)
 
-            # self.__proseed_round()
+            layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
+
+            layout.add(vertical_box, 
+                    anchor_x="right",
+                    anchor_y="top",)
+
+            @load_button.event("on_click")
+            def on_click_flatbutton(event):
+                self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.LOAD.name.lower(), 0))
+
+
+            @switch_button.event("on_click")
+            def on_click_flatbutton(event):
+                self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.SWITCH.name.lower(), nargs=2,
+                                                        args=[VoiceVocabulary.LEFT.name.lower(), 
+                                                                VoiceVocabulary.MIDDLE.name.lower()]))
+
+
+            @ready_button.event("on_click")
+            def on_click_flatbutton(event):
+                self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.READY.name.lower(), 0))
 
         self.score_label = arcade.gui.UILabel(
             font_size=18,
@@ -77,9 +110,6 @@ class GameView(arcade.View):
             f"Opponent's score: {self.game.model.player_round_losses}\n" \
             f"Rounds left: {self.game.model.rounds_left}",
         )
-
-        # layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
-        # layout.add(ready_to_proceed_button, anchor_x="right", anchor_y="top")
 
         layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
         layout.add(self.score_label, anchor_x="left", anchor_y="top")
@@ -107,7 +137,10 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float):
         self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
-        self.loading_cards = self.game.model.card_detector.get_cards()
+        
+        # If we are in loading state
+        if VoiceVocabulary.LOAD in self.possible_states:
+            self.loading_cards = self.game.model.card_detector.get_cards()
 
         if self.game.model.round_result is not None:
             if self.game.model.rounds_left == 0:
@@ -117,8 +150,14 @@ class GameView(arcade.View):
 
             self.__update_player_cards()
 
+        voice_command_queue = queue.Queue()
+        
         # Process voice commands
-        voice_command_queue = self.game.model.voice_recognizer.command_queue
+        if constants.DEBUG_SESSION:
+            voice_command_queue = self.debug_voice_queue
+        else:
+            voice_command_queue = self.game.model.voice_recognizer.command_queue
+        
         while not voice_command_queue.empty():
             self.__process_voice_command(voice_command_queue.get())
             voice_command_queue.task_done()
@@ -202,12 +241,11 @@ class GameView(arcade.View):
             # Swap
             self.loading_cards[index1], self.loading_cards[index2] = self.loading_cards[index2], self.loading_cards[index1]
             self.game.model.player_selected_cards = self.loading_cards
-            self.possible_states = [VoiceVocabulary.READY]
 
         elif (command.name == VoiceVocabulary.READY.name.lower()) and (VoiceVocabulary.READY in self.possible_states):
             args = [card.suit.name + '-' + card.rank.name for card in self.game.model.player_selected_cards]
 
-            self.game.model.process_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
+            self.game.model.process_client_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
             self.possible_states = [VoiceVocabulary.LOAD]
 
     def __draw_cards_in_the_center(self, cards_sprites, y):

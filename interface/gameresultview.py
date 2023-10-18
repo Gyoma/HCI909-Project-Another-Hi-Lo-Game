@@ -55,7 +55,7 @@ class GameResultView(arcade.View):
 
         @quit_button.event("on_click")
         def on_click_flatbutton(event):
-            self.__quit()
+            arcade.exit()
 
         vertical_box = arcade.gui.UIBoxLayout(space_between=5)
         vertical_box.add(game_result_label)

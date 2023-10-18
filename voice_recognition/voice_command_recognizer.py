@@ -6,12 +6,12 @@ import copy
 
 class VoiceVocabulary(Enum):
     LOAD = 0,
-    READY = 0,
-    NEXT = 1,
-    SWITCH = 2,
-    LEFT = 3,
-    MIDDLE = 4,
-    RIGHT = 5
+    READY = 1,
+    NEXT = 2,
+    SWITCH = 3,
+    LEFT = 4,
+    MIDDLE = 5,
+    RIGHT = 6
 
 class VoiceCommand:
     def __init__(self, name = None, nargs = 0, args = [], variants = [], different = True):
