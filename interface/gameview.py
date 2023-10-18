@@ -229,8 +229,7 @@ class GameView(arcade.View):
     def __process_voice_command(self, command : VoiceCommand):
         if (command.name == VoiceVocabulary.LOAD.name.lower()) \
             and (VoiceVocabulary.LOAD in self.possible_states) \
-            and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND) \
-            and (len(self.game.model.player_selected_cards) == 0):
+            and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
                 self.game.model.player_selected_cards = self.loading_cards
                 self.possible_states = [VoiceVocabulary.SWITCH, VoiceVocabulary.READY]
         elif (command.name == VoiceVocabulary.SWITCH.name.lower()) and (VoiceVocabulary.SWITCH in self.possible_states):

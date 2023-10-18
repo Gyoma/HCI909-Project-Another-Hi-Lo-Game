@@ -93,7 +93,6 @@ class GameModel():
 
         for card in self.player_selected_cards:
             self.player_available_cards.remove(card)
-        self.player_selected_cards = []
 
         self.rounds_left -= 1
         self.round_result = constants.RoundResult[status]
