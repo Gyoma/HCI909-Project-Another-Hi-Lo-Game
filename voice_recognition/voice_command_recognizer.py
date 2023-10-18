@@ -5,7 +5,8 @@ import queue
 import copy
 
 class VoiceVocabulary(Enum):
-    COMPETE = 0,
+    LOAD = 0,
+    READY = 0,
     NEXT = 1,
     SWITCH = 2,
     LEFT = 3,
@@ -29,7 +30,8 @@ class VoiceCommandRecognizer:
         self.stop_listening = None
 
         self.vocabulary = [
-            VoiceCommand(VoiceVocabulary.COMPETE.name.lower(), 0),
+            VoiceCommand(VoiceVocabulary.LOAD.name.lower(), 0),
+            VoiceCommand(VoiceVocabulary.READY.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.NEXT.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.SWITCH.name.lower(), nargs=2, variants=[
                 VoiceVocabulary.LEFT.name.lower(), 

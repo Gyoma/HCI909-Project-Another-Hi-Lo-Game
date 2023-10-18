@@ -3,17 +3,28 @@ import arcade.gui
 
 from game.game_model import GameModel
 from common.card import Card
+from common import constants
 from interface.cardsprite import CardSprite
 from interface.gameresultview import GameResultView
 from interface.roundresultview import RoundResultView
 
 from game import card_game
+from network.common.connection_command import ConnectionCommand
+from voice_recognition.voice_command_recognizer import VoiceCommand, VoiceVocabulary
 
 class GameView(arcade.View):
     def __init__(self):
         super().__init__()
 
         self.game = card_game.game()
+
+        self.switch_indexes = {
+            VoiceVocabulary.LEFT.name.lower() : 0,
+            VoiceVocabulary.MIDDLE.name.lower() : 1,
+            VoiceVocabulary.RIGHT.name.lower() : 2
+        }
+
+        self.possible_states = [VoiceVocabulary.LOAD]
 
         self.player_selected_cards_sprites = arcade.SpriteList()
         self.player_available_cards_sprites = arcade.SpriteList()
@@ -28,6 +39,7 @@ class GameView(arcade.View):
         self.ui_manager.enable()
 
         self.move_cards_direction = 0
+        self.loading_cards = []
 
         self.setup()
 
@@ -95,7 +107,7 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float):
         self.player_available_cards_sprites.move(self.move_cards_direction * delta_time * 500, 0)
-        self.game.model.player_selected_cards = self.game.model.card_detector.get_cards()
+        self.loading_cards = self.game.model.card_detector.get_cards()
 
         if self.game.model.round_result is not None:
             if self.game.model.rounds_left == 0:
@@ -104,6 +116,12 @@ class GameView(arcade.View):
                 self.window.show_view(RoundResultView())
 
             self.__update_player_cards()
+
+        # Process voice commands
+        voice_command_queue = self.game.model.voice_recognizer.command_queue
+        while not voice_command_queue.empty():
+            self.game.model.process_voice_command(voice_command_queue.get())
+            voice_command_queue.task_done()
 
         # Update score label
         self.score_label.text = f"Your score: {self.game.model.player_round_wins}\n" \
@@ -169,6 +187,28 @@ class GameView(arcade.View):
 
             card_sprite.alpha = 150
 
+    def __process_voice_command(self, command : VoiceCommand):
+        if (command.name == VoiceVocabulary.LOAD.name.lower()) \
+            and (VoiceVocabulary.LOAD in self.possible_states) \
+            and (len(self.loading_cards) == constants.REQ_NUM_OF_CARDS_FOR_ROUND):
+                self.game.model.player_selected_cards = self.loading_cards
+                self.possible_states = [VoiceVocabulary.SWITCH, VoiceVocabulary.READY]
+        elif (command.name == VoiceVocabulary.SWITCH.name.lower()) and (VoiceVocabulary.SWITCH in self.possible_states):
+            index1, index2 = command.args
+            index1 = self.switch_indexes.get(index1)
+            index2 = self.switch_indexes.get(index2)
+            
+            # Swap
+            self.loading_cards[index1], self.loading_cards[index2] = self.loading_cards[index2], self.loading_cards[index1]
+            self.game.model.player_selected_cards = self.loading_cards
+            self.possible_states = [VoiceVocabulary.READY]
+
+        elif (command.name == VoiceVocabulary.READY.name.lower()) and (VoiceVocabulary.READY in self.possible_states):
+            args = [card.suit.name + '-' + card.rank.name for card in self.game.model.player_selected_cards]
+
+            self.game.model.process_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
+            self.possible_states = [VoiceVocabulary.LOAD]
+
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
         
@@ -190,7 +230,7 @@ class GameView(arcade.View):
 
     def __draw_player_selected_cards(self):
         player_selected_cards_sprites = arcade.SpriteList()
-        for card in self.game.model.player_selected_cards:
+        for card in self.loading_cards:
             player_selected_cards_sprites.append(
                 CardSprite(card, is_face_up=True))
 

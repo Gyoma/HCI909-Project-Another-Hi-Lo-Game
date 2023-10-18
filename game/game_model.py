@@ -29,10 +29,6 @@ class GameModel():
             ConnectionCommand.Command.ERROR.name : self.__client_error_command
         }
 
-        self.voice_recognizer_command_handlers = {
-            VoiceVocabulary.COMPETE.name : self._voice_compete_command
-        }
-
         self.reset()
 
     def process_client_command(self, command):
@@ -40,12 +36,6 @@ class GameModel():
             return
         
         self.client_command_handlers.get(command.name())(command)
-
-    def process_voice_command(self, command : VoiceCommand):
-        if (command is None) or (not command.name in self.voice_recognizer_command_handlers):
-            return
-        
-        self.voice_recognizer_command_handlers.get(command.name)(command)
 
     def start_server(self):
         self.server_task = asyncio.run_coroutine_threadsafe(server.run_server(), self.event_loop)
@@ -118,10 +108,4 @@ class GameModel():
 
     def __client_error_command(self, command):
         print(str(command))
-
-    def _voice_compete_command(self, command):
-        args = [card.suit.name + '-' + card.rank.name for card in self.player_selected_cards]
-
-        self.process_client_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
-
     

@@ -17,10 +17,4 @@ class GameWindow(arcade.Window):
             self.game.model.process_client_command(read_queue.get())
             read_queue.task_done()
 
-        # Process voice commands
-        voice_command_queue = self.game.model.voice_recognizer.command_queue
-        while not voice_command_queue.empty():
-            self.game.model.process_voice_command(voice_command_queue.get())
-            voice_command_queue.task_done()
-
         return super().on_update(delta_time)
