@@ -4,6 +4,9 @@ from enum import Enum
 import queue
 import copy
 
+from common import constants
+from game import card_game
+
 class VoiceVocabulary(Enum):
     LOAD = 0,
     READY = 1,
@@ -47,6 +50,8 @@ class VoiceCommandRecognizer:
     def start(self):
         self.stop()
 
+        game = card_game.game()
+
         self.stop_listening = self.recognizer.listen_in_background(
             sr.Microphone(device_index=self.audio_src), 
             callback=self.__process_phrase, 
@@ -62,7 +67,8 @@ class VoiceCommandRecognizer:
     def __process_phrase(self, recognizer, audio):
         text = self.__convert_voice_to_text(audio)
 
-        print(text)
+        if constants.DEBUG_SESSION:
+            print(f'You said: {text}')
 
         if not text:
             return

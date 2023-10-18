@@ -18,7 +18,7 @@ class MainMenuView(arcade.View):
         app_name_label = arcade.gui.UILabel(
             font_size=72,
             align="center",
-            text="Attack game",
+            text="Attack Game",
         )
 
         new_game_button = arcade.gui.UIFlatButton(

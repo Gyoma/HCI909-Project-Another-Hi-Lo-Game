@@ -71,6 +71,7 @@ class ThreadedCardDetector():
         self.video_source_index = video_source_index
         self.buffer_size = buffer_size
         self.current_cards = ThreadSafeList()
+        self.card_detector = None
         
         self.run_thread = False
         self.thread = None
