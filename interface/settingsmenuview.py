@@ -36,7 +36,7 @@ class SettingsView(arcade.View):
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
             camera_index = self.__match_camera_to_index(event.new_value)
-            self.game.model.settings.camera_id = camera_index
+            self.game.model.set_video_source(camera_index)
 
         microphones_list_label = arcade.gui.UILabel(
             font_size=18,

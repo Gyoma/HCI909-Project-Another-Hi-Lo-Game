@@ -56,6 +56,9 @@ class GameModel():
     def get_all_cards(cls):
         return [Card(suit, rank) for suit, rank in itertools.product(Card.Suit, Card.Rank)]
     
+    def set_video_source(self, source):
+        self.card_detector.set_video_source(source)
+        self.settings.camera_id = source
 
     def reset(self):
         self.rounds_left = constants.MAX_NUM_OF_ROUNDS
