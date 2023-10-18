@@ -3,6 +3,8 @@ import asyncio
 
 import threading
 
+import cv2
+
 from game.game_model import GameModel
 from interface.game_window import GameWindow
 from network.client.client import Client
@@ -27,9 +29,10 @@ class Game:
     def setup(self):
         self.window = GameWindow(self)
         self.window.show_view(MainMenuView())
+        
 
     def run(self):
         arcade.run()
 
     def clean(self):
-        pass
+        cv2.destroyAllWindows()
