@@ -4,6 +4,14 @@
 # https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 # https://www.pyimagesearch.com/2015/12/21/increasing-webcam-fps-with-python-and-opencv/
 
+# This file was taken and modified from the following repo:
+# https://github.com/EdjeElectronics/OpenCV-Playing-Card-Detector
+# 
+# The video explaining the idea:
+# https://youtu.be/m-QPjO-2IkA?si=p7HiM9ZAj1IWQFdY
+#
+# Thank to the author. It gave us a great start.
+
 # Import the necessary packages
 from threading import Thread
 import cv2
@@ -11,7 +19,11 @@ import numpy as np
 
 
 class VideoStream:
-    """Camera object"""
+    """
+    A camera object constantly consuming frames from camera's stream buffer.\n
+    It runs in its' own thread as daemon
+    """
+
     def __init__(self, resolution=(640,480), src=0):
 
         # Initialize the USB camera and the camera image stream

@@ -148,13 +148,6 @@ class RoundResultView(arcade.View):
         self.game.model.opponent_selected_cards = []
 
         self.window.show_view(gameview.GameView())
-        # if (self.game.state.rounds_left == 0):
-        #     self.window.show_view(GameResultView(self.game.get_result()))
-        #     self.window.current_view.setup()
-        #     return
-
-        # self.window.show_view(gameview.GameView())
-        # self.window.current_view.setup()
 
     def __process_voice_command(self, command : VoiceCommand):
         if command.name == VoiceVocabulary.NEXT.name.lower():

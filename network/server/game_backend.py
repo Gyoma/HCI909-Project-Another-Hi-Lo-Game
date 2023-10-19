@@ -1,4 +1,3 @@
-import os
 import asyncio
 from common.card import Card
 from network.common.connection_command import ConnectionCommand
@@ -6,33 +5,32 @@ from network.common.connection_command import ConnectionCommand
 from network.server.player import Player
 from common import constants
 
-import random
-
 class GameBackend:
+    """
+    A class to manage the game flow. It's responsible for:\n
+    a. Accepting players connections
+    b. Processing players commands
+    """
+    
     def __init__(self):
         self.players = {}
+
+        # Callback dict to store needed data of a specific command
         self.command_handlers = {
             ConnectionCommand.Command.COMPETE.name : {
                 'handler' : self.__compete_command,
                 'sync' : asyncio.Barrier(constants.REQ_NUM_OF_PLAYERS),
-                'req_opp' : True
             },
             ConnectionCommand.Command.USED_CARDS.name : {
                 'handler' : self.__used_cards_command,
-                'req_opp' : False
             }
         }
 
     async def player_connected(self, reader, writer):
         player_ip = writer.transport.get_extra_info('peername')[0]
-
-        if constants.DEBUG_SESSION:
-            print(f'New player connected : {player_ip}')
-            player_ip += str(random.randint(0, 1000))
-
         player = None
 
-        # Check if data for this IP is present. If so, then we recover player state
+        # Check if data for this IP is present. If so, then we recover player's state
         if player_ip in self.players:
             player = self.players.get(player_ip)
             
@@ -58,6 +56,8 @@ class GameBackend:
 
             # Client disconnected
             if not request:
+
+                # If any command task is running then cancel it
                 if (player.command_task is not None) and (not player.command_task.cancelled()):
                     try:
                         player.command_task.cancel()
@@ -80,11 +80,9 @@ class GameBackend:
 
                 player.command_task = asyncio.create_task(self.__handle_request(player, command))
                 player.command_task.add_done_callback(done_callback)
-                
-                if command is not None:
-                    player.command_task.set_name(command.name()) # just to make it more handy
 
             else:
+                # Inform the player
                 await self.__reply(writer, ConnectionCommand(ConnectionCommand.Command.STATUS, ['Waiting your opponent']))
 
         writer.close()
@@ -98,8 +96,6 @@ class GameBackend:
 
             if task.cancelled():
                 return
-            
-            # print(f'Player\'s data removed for {player.ip}')
             
             self.players.pop(player.ip)
 
@@ -142,6 +138,7 @@ class GameBackend:
 
         barrier = self.command_handlers.get(ConnectionCommand.Command.COMPETE.name).get('sync')
 
+        # We need all players get to this point first
         await barrier.wait()
         
         opponent = self.__get_opponent(player)
@@ -154,6 +151,7 @@ class GameBackend:
         opp_cards = [constants.SHORT_SUITS[card.suit.name] + constants.SHORT_RANKS[card.rank.name] for card in opponent.curr_cards]
         opp_cards = '-'.join(opp_cards)
 
+        # Wait all players before update its' data
         await barrier.wait()
         player.update()
 
@@ -177,8 +175,8 @@ class GameBackend:
         return card[0], card[1:]
 
     def __get_opponent(self, player):
-        for key, value in self.players.items():
-            if key != player.ip:
-                return value
+        for ip, other_player in self.players.items():
+            if ip != player.ip:
+                return other_player
             
         return None

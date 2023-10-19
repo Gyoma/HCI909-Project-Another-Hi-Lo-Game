@@ -13,6 +13,7 @@ from network.server import server
 
 from interface.mainmenuview import MainMenuView
 
+# Global variable
 _game = None
 
 def init(event_loop, client_read_queue, client_write_queue):
@@ -30,7 +31,6 @@ class Game:
         self.window = GameWindow(self)
         self.window.show_view(MainMenuView())
         
-
     def run(self):
         arcade.run()
 

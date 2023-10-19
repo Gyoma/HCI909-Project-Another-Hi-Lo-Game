@@ -9,9 +9,11 @@ DARK_AMAZON = arcade.types.Color(35, 73, 52)
 
 
 class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
-    """Acts like a fake view/window."""
+    """
+    A menu where a player can either create new session hosting it or connect to existing one.\n
+    Acts like a fake view / window.
+    """
 
-    # , title: str, input_text: str, toggle_label: str, dropdown_options: List[str], slider_label: str):
     def __init__(self):
         super().__init__(size_hint=(1, 1))
 
@@ -23,7 +25,6 @@ class StartSubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
         frame.with_padding(all=20)
 
         # Add a background to the window.
-        # Nine patch smoothes the edges.
         frame.with_background(color=DARK_AMAZON)
         frame.with_border(color=arcade.color.GRAY)
 

@@ -11,14 +11,12 @@ class GameWindow(arcade.Window):
         self.set_min_size(constants.MIN_WINDOW_WIDTH, constants.MIN_WINDOW_HEIGHT)
 
     def on_update(self, delta_time: float):
-        # cv2.namedWindow('Camera View')
-
-        card_detector = self.game.model.card_detector.card_detector
+        card_detector = self.game.model.card_detector
 
         if card_detector is not None:
-            image, _ = card_detector.last_images()
+            image = card_detector.get_last_image()
 
-            if image is not None:
+            if (image is not None) and (image.ndim > 0):
                 cv2.imshow('Camera View', image)
 
         # Process network commands

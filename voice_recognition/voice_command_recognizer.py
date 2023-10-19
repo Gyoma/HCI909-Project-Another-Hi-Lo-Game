@@ -6,9 +6,12 @@ import copy
 import threading
 
 from common import constants
-from game import card_game
 
 class VoiceVocabulary(Enum):
+    """
+    List of (sub-)commands available to use
+    """
+        
     START = 0,
     READY = 1,
     NEXT = 2,
@@ -18,7 +21,18 @@ class VoiceVocabulary(Enum):
     RIGHT = 6
 
 class VoiceCommand:
+    """
+    Class representing a voice command
+    """
+        
     def __init__(self, name = None, nargs = 0, args = [], variants = [], different = True):
+        """
+        name - Name of a command. See VoiceVocabulary\n
+        nargs - Number of required arguments\n
+        args - List of arguments\n
+        variants - Set of all possible arguments\n
+        different - Flag showing whether all arguments must be different
+        """
         self.name = name
         self.nargs = nargs
         self.variants = variants
@@ -26,6 +40,10 @@ class VoiceCommand:
         self.args = args
 
 class VoiceCommandRecognizer:
+    """
+    A class for the voice recognition. It runs in its' own thread as daemon.\n
+    The last max_queue_size processed commands can be obtained with command_queue property
+    """
 
     def __init__(self, audio_src = 0, max_queue_size = 3):
         self.recognizer = sr.Recognizer()
@@ -35,7 +53,7 @@ class VoiceCommandRecognizer:
         self.thread = None
         self.listening = False
 
-        self.vocabulary = [
+        self.commands = [
             VoiceCommand(VoiceVocabulary.START.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.READY.name.lower(), 0),
             VoiceCommand(VoiceVocabulary.NEXT.name.lower(), 0),
@@ -71,22 +89,16 @@ class VoiceCommandRecognizer:
             self.recognizer.adjust_for_ambient_noise(source, duration=2)
 
             while self.listening:
-                try:  # listen for 1 second, then check again if the stop function has been called
+                try:  
+                    # listen for 5 second
                     audio = self.recognizer.listen(source, phrase_time_limit=5)
                     self.__process_phrase(audio)
-                except sr.WaitTimeoutError:  # listening timed out, just try again
+                except sr.WaitTimeoutError:  
+                    # listening timed out, just try again
                     pass
 
-            # self.stop_listening = self.recognizer.listen_in_background(
-            #     source, #device_index=self.audio_src), 
-            #     callback=self.__process_phrase, 
-            #     phrase_time_limit=5)
-
-
     def __process_phrase(self, audio):
-        # print(audio)
-
-        text = self.__convert_voice_to_text(audio)
+        text = self.__convert_audio_to_text(audio)
 
         if not text:
             return
@@ -96,8 +108,9 @@ class VoiceCommandRecognizer:
         
         recognized_command = None
 
-        # Only one command per a phrase
-        for command in self.vocabulary:
+        # Only one command per a phrase is allowed.
+        # So, we are going to find it and create (if any) an appropriate voice command
+        for command in self.commands:
             index = text.find(command.name)
             
             if index != -1:
@@ -123,14 +136,10 @@ class VoiceCommandRecognizer:
 
             self.command_queue.put(recognized_command)
 
-    def __convert_voice_to_text(self, audio):
+    def __convert_audio_to_text(self, audio):
         try:
             text = self.recognizer.recognize_whisper(audio, model='base.en', language="english")
         except sr.UnknownValueError:
-            text = ""
+            text = ''
 
-        # print(text)
         return text.lower()
-    
-# def is_command(text, required_command):
-#     return text.lower().count(required_command.lower()) > 0

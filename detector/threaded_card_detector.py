@@ -3,25 +3,17 @@ from common import constants
 from detector.card_detector import CardDetector
 from detector.cards_helper import QueryCard
 
-import weakref
 import threading
 import time
 import copy
 
 DEFAULT_BUFFER_SIZE = 25
 
-# _card_detector = None
-
-# def card_detector():
-#     global _card_detector
-    
-#     if _card_detector is None:
-#         _card_detector = ObservableCardDetector()
-    
-#     return _card_detector
-
-# custom class wrapping a list in order to make it thread safe
 class ThreadSafeList():
+    """
+    A custom class wrapping a list in order to make it thread safe
+    """
+    
     # constructor
     def __init__(self):
         # initialize the list
@@ -66,12 +58,22 @@ class ThreadSafeList():
         with self._lock:
             return len(self._list)
 
+
 class ThreadedCardDetector():
+    """
+    A class responsible for finding and identifying cards on an image obtained from a camera.\n
+    It runs in its' own thread as daemon.\n
+
+    With this class you can either obtain identified cards via get_cards or the last camera image.\b
+    Basically, it's just a threaded wrapper for CardDetector, so check it first.
+    """
+
     def __init__(self, video_source_index = 2, buffer_size=DEFAULT_BUFFER_SIZE):
         self.video_source_index = video_source_index
         self.buffer_size = buffer_size
         self.current_cards = ThreadSafeList()
         self.card_detector = None
+        self.last_image = None
         
         self.run_thread = False
         self.thread = None
@@ -84,25 +86,16 @@ class ThreadedCardDetector():
             time.sleep(0.1) # yeild
 
             predicted_cards = self.card_detector.buff_detect_cards(draw_data=False)
+            self.last_image, _ = self.card_detector.last_images()
+            
             cards = self.__convert_predicted_cards_to_game_cards(predicted_cards)
             self.current_cards.replace(cards)
 
-            # self.notify_observers()
-
-    # def add_observer(self, observer):
-    #     self.observers.add(observer)
-    
-    # def remove_observer(self, observer):
-    #     self.observers.remove(observer)
-
-    # def notify_observers(self):
-    #     cards = self.current_cards.snapshot()
-
-    #     for observer in self.observers:
-    #         observer.update(cards)
-
     def get_cards(self):
         return self.current_cards.snapshot()
+    
+    def get_last_image(self):
+        return copy.deepcopy(self.last_image) if self.last_image is not None else None
     
     def set_video_source(self, video_source_index):
         self.stop()

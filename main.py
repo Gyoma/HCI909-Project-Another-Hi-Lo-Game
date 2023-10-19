@@ -5,6 +5,7 @@ import threading
 
 from game import card_game
 
+# Thread-safe queues supporting asyncio's coroutines approach for communication between threads
 client_read_queue = None
 client_write_queue = None
 asyncio_initialized = False
@@ -14,6 +15,7 @@ def asyncio_init():
     global client_write_queue
     global asyncio_initialized
 
+    # Cannot be created outside of asyncio's running event loop
     client_read_queue = janus.Queue()
     client_write_queue = janus.Queue()
     asyncio_initialized = True
@@ -31,6 +33,7 @@ def main():
     asyncio_thread = threading.Thread(target=asyncio_run, args=(asyncio_event_loop, ), daemon=True)
     asyncio_thread.start()
 
+    # Wait til the asincio thread is initialized
     while not asyncio_initialized:
         time.sleep(0.2) # yield
 

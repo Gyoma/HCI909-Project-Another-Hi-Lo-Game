@@ -1,6 +1,10 @@
 from common import constants
 
 class Player:
+    """
+    Class representing a player on server side with corresponding data
+    """
+
     def __init__(self, ip, reader, writer):
         self.ip = ip
         self.used_cards = []

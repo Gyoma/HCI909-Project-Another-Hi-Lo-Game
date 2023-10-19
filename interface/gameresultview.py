@@ -85,17 +85,4 @@ class GameResultView(arcade.View):
         self.ui_manager.draw()
 
     def on_update(self, delta_time: float):
-        # if (self.go_to_next_game):
-        #     self.__new_game()
-        #     self.go_to_next_game = False
-        # elif (self.quit):
-        #     self.__quit()
-        #     self.quit = False
         return super().on_update(delta_time)
-
-    # def __new_game(self):
-    #     self.window.show_view(gameview.GameView(GameLogic()))
-    #     self.window.current_view.setup()
-    
-    # def __quit(self):
-    #     arcade.exit()

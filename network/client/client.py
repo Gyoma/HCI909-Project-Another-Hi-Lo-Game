@@ -6,6 +6,12 @@ from common import constants
 from network.common.connection_command import ConnectionCommand
 
 class Client:
+    """
+    A class to handle all the network stuff on the client side.\n
+    It sends requests via putting them (either in the std fashion or in asyncio's one) in write_queue by a user first\n
+    It writes all responses got from the server to read_queue to let a user read them
+    """
+
     def __init__(self, client_read_queue, client_write_queue):
         self.read_queue = client_read_queue
         self.write_queue = client_write_queue

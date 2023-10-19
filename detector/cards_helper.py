@@ -1,7 +1,15 @@
+# This file was taken and modified from the following repo:
+# https://github.com/EdjeElectronics/OpenCV-Playing-Card-Detector
+# 
+# The video explaining the idea:
+# https://youtu.be/m-QPjO-2IkA?si=p7HiM9ZAj1IWQFdY
+#
+# Thank to the author. It gave us a great start.
+
 # Import necessary packages
 import numpy as np
 import cv2
-from detector.helper import constants
+from common import constants
 
 ### Constants ###
 
@@ -25,7 +33,7 @@ class QueryCard:
         self.width, self.height = 0, 0  # Width and height of card
         self.corner_pts = []  # Corner points of card
         self.center = []  # Center point of card
-        self.warp = []  # 200x300, flattened, grayed, blurred image
+        self.warp = []  # constants.CARD_WIDTH x constants.CARD_HEIGHT, flattened, grayed, blurred image
         self.corner = []
         self.rank_img = []  # Thresholded, sized image of card's rank
         self.suit_img = []  # Thresholded, sized image of card's suit
@@ -42,7 +50,6 @@ def preprocess_image(image):
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    # blur = cv2.medianBlur(blur, 3)
 
     # The best threshold level depends on the ambient lighting conditions.
     # For bright lighting, a high threshold must be used to isolate the cards
@@ -58,14 +65,6 @@ def preprocess_image(image):
     thresh_level = bkg_level + BKG_THRESH
 
     retval, thresh = cv2.threshold(blur, thresh_level, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    # thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-    #                                cv2.THRESH_BINARY, 25, 2)
-    #
-    
-    # ret3, thresh = cv2.threshold(blur, 255, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    # print(thresh_level, ret3)
 
     return thresh
 
@@ -135,7 +134,7 @@ def process_card(contour, image,  card_model):
     """Uses contour to find information about the query card. Isolates rank
     and suit images from the card."""
 
-    # Initialize new Query_card object
+    # Initialize new QueryCard object
     qCard = QueryCard()
 
     qCard.contour = contour
@@ -156,14 +155,12 @@ def process_card(contour, image,  card_model):
     cent_y = int(average[0][1])
     qCard.center = [cent_x, cent_y]
 
-    # Warp card into 200x300 flattened image using perspective transform
+    # Warp card into constants.CARD_WIDTH x constants.CARD_HEIGHT flattened image using perspective transform
     qCard.warp = flattener(image, pts, w, h)
 
     qCard.corner = qCard.warp[0:constants.CARD_CORNER_HEIGHT, 0:constants.CARD_CORNER_WIDTH]
 
     results = card_model.predict(source=qCard.corner, imgsz=constants.CARD_CORNER_HEIGHT, verbose=False)
-
-    # cv2.imshow("Corner", qCard.corner)
 
     if len(results) > 0:
         res = results[0]
@@ -182,7 +179,6 @@ def draw_results(image, qCard):
 
     x = qCard.center[0]
     y = qCard.center[1]
-    # cv2.circle(image, (x, y), 5, (255, 0, 0), -1)
 
     rank_name = qCard.best_rank_match
     suit_name = qCard.best_suit_match
@@ -198,18 +194,11 @@ def draw_results(image, qCard):
     cv2.putText(image, suit_name, (x-60, y+25), font,
                 1, (50, 200, 200), 2, cv2.LINE_AA)
 
-    # Can draw difference value for troubleshooting purposes
-    # (commented out during normal operation)
-    # r_diff = str(qCard.rank_diff)
-    # s_diff = str(qCard.suit_diff)
-    # cv2.putText(image,r_diff,(x+20,y+30),font,0.5,(0,0,255),1,cv2.LINE_AA)
-    # cv2.putText(image,s_diff,(x+20,y+50),font,0.5,(0,0,255),1,cv2.LINE_AA)
-
     return image
 
 
 def flattener(image, pts, w, h):
-    """Flattens an image of a card into a top-down 200x300 perspective.
+    """Flattens an image of a card into a top-down constants.CARD_WIDTH x constants.CARD_HEIGHT perspective.
     Returns the flattened, re-sized, grayed image.
     See www.pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/"""
     temp_rect = np.zeros((4, 2), dtype="float32")
@@ -273,7 +262,5 @@ def flattener(image, pts, w, h):
                    maxHeight-1], [0, maxHeight-1]], np.float32)
     M = cv2.getPerspectiveTransform(temp_rect, dst)
     warp = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
-    # warp = cv2.cvtColor(warp, cv2.COLOR_BGR2GRAY)
-    # warp = cv2.GaussianBlur(warp, (5, 5), 0)
 
     return warp

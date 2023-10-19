@@ -1,149 +1,49 @@
+# This file was taken and modified from the following repo:
+# https://github.com/EdjeElectronics/OpenCV-Playing-Card-Detector
+# 
+# The video explaining the idea:
+# https://youtu.be/m-QPjO-2IkA?si=p7HiM9ZAj1IWQFdY
+#
+# Thank to the author. It gave us a great start.
+
 # Import necessary packages
 import cv2
 import numpy as np
-import time
 import os
 import detector.cards_helper as cards_helper
 import detector.video_stream as video_stream
 import ultralytics as ul
+from common import constants
 
-# from models import model_wrapper
-# from helper import constants, data_generator
-
-
-### ---- INITIALIZATION ---- ###
-# Define constants and initialize variables
-
-# suits_source_folder = "./imgs/p_suits_i/"
-# ranks_source_folder = "./imgs/p_ranks_i/"
-
-# # data_generator.generate(suits_source_folder)
-# # data_generator.generate(ranks_source_folder)
-
-# suits_train_folder = os.path.join(suits_source_folder, "res")
-# ranks_train_folder = os.path.join(ranks_source_folder, "res")
-
-# modelRanks, modelSuits = model_wrapper.model_wrapper(constants.NUM_RANKS, data_path=ranks_train_folder, save_path='weights/rankWeights.h5'), \
-#                          model_wrapper.model_wrapper(constants.NUM_SUITS, data_path=suits_train_folder, save_path='weights/suitWeights.h5'),
-
-# data_generator.generate(card_source_folder)
-
-# files = os.listdir("/home/artem/Downloads/px-conversions/")
-
-# import shutil
-
-# for file in files:
-
-#     if (os.path.isdir("/home/artem/Downloads/px-conversions/" + file)):
-#         continue
-
-#     (rank, suit) = [*file.split(".")[0]][:2]
-
-#     if rank == "T":
-#         rank = "10"
-#     elif rank == "J":
-#         rank = "Jack"
-#     elif rank == "Q":
-#         rank = "Queen"
-#     elif rank == "K":
-#         rank = "King"
-
-#     if suit == "C":
-#         suit = "Clubs"
-#     elif suit == "H":
-#         suit = "Hearts"
-#     elif suit == "D":
-#         suit = "Diamonds"
-#     elif suit == "S":
-#         suit = "Spades"
-
-#     file = os.path.join("/home/artem/Downloads/px-conversions/", file)
-
-#     new_file = os.path.join(os.path.dirname(file), "res", rank + "-" + suit + ".jpg")
-
-#     shutil.copy2(file, new_file)
-
-#     print(rank, suit)
-
-
-current_folder = os.path.dirname(os.path.abspath(__file__))
-
-# for suit in ['hearts', 'clubs', 'spades', 'diamonds']:
-#     for rank in ['ace', 'king', 'queen', 'jack', '10', '9', '8', '7', '6', '5', '4', '3', '2']:
-#         for ext in ['webp', 'png', 'jpg', 'jpeg']:
-#             res = os.system(f'wget \"https://randomgenerate.io/_next/image?url=https%3A%2F%2Fstatic-abbreviations.nyc3.digitaloceanspaces.com%2Frandom-generate%2Frandom-card-generator%2F{suit}_{rank}.{ext}&w=384&q=75\" -O {os.path.join(path, "down", suit + "-" + rank + ".jpg")}')
-            
-#             print(suit, rank, ext, res)
-
-#             if res == 0:
-#                 break
-    
-
-# down_path = os.path.join(path, "down")
-# file_names = os.listdir(down_path)
-# for file_name in file_names:
-#     img = cv2.imread(os.path.join(down_path, file_name))
-    
-#     if img is None:
-#         continue
-    
-#     img = cv2.resize(img, (constants.CARD_WIDTH, constants.CARD_HEIGHT))
-
-#     file_name_alone, file_ext = os.path.splitext(file_name)
-#     file_suit, file_rank = file_name_alone.split('-')
-
-#     cv2.imwrite(os.path.join(down_path, "res", file_rank.capitalize() + "-" + file_suit.capitalize() + file_ext), img)
-
-
-# data_generator.crop_corners(os.path.join(path, "down"), os.path.join(path, "down", "res"), "-1")
-
-# card_source_folder = "./imgs/card_data_1/"
-
-# card_train_folder = os.path.join(card_source_folder, "res")
-
-# card_model = model_wrapper.model_wrapper(constants.CARD_DENOMS_NUM, data_path=card_train_folder, wts_path='weights/weights.h5')
-
-# train_single_card_folder = "/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/single_cards_1/res/"
-
-# for name in os.listdir(train_single_card_folder):
-#     dir = os.path.join(train_single_card_folder, name)
-
-#     if not os.path.isdir(dir):
-#         continue
-        
-#     data_generator.generate(dir, dir)
-
-# pure_data_path = os.path.join(path, "data", "pure_data")
-
-# for name in os.listdir(pure_data_path):
-#     dir = os.path.join(pure_data_path, name)
-
-#     if not os.path.isdir(dir):
-#         continue
-        
-#     data_generator.generate(dir, dir)
-
-# data_generator.split_data_wrt_yolo("/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/yolo_data/",
-#                                    "/home/artem/projects/python/OpenCV-Playing-Card-Detector-master/imgs/yolo_train_data/")
-
-from detector.helper import constants
-
-# Camera settings
+# OpenCV window settings
 IM_WIDTH = 1280
 IM_HEIGHT = 720
 
-# Define font to use
+current_folder = os.path.dirname(os.path.abspath(__file__))
+
+# Define font to use if needed
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-class DetectedCard:
-    def __init__(self) -> None:
-        self.contour = []
-        self.rank = "Unknown"
-        self.suit = "Unknown"
-
 class CardDetector:
+    """
+    A class responsible for finding and identifying cards on an image obtained from a camera.\n
+    It uses YOLOv8 model to identify cards.\n
+
+    With this you can obtain either identified cards of the last image from a camera.\n
+
+    For greater stability it supports card identification buffering. The idea is to store the last buffer_size\n
+    identifications (array of constants.REQ_CARDS_NUM cards) and based on them (statistically) provide the user\n
+    with the best prediction. 
+
+    To get identified cards without buffering use detect_cards or buff_detect_cards otherwise.\n
+
+    You can also obtain an image from a camera via calling last_images method
+    """
+
     def __init__(self, video_src = 0, buffer_size = 25) -> None:
         model_path = os.path.join(current_folder, "model", "weights", "best_s_3.pt")
+        
+        # CNN model to identify playing cards
         self.card_model = ul.YOLO(model_path)
 
         self.image = None
@@ -154,8 +54,6 @@ class CardDetector:
         # Initialize camera object and video feed from the camera. The video stream is set up
         # as a seperate thread that constantly grabs frames from the camera feed.
         # See VideoStream.py for VideoStream class definition
-        # IF USING USB CAMERA INSTEAD OF PICAMERA,
-        # CHANGE THE THIRD ARGUMENT FROM 1 TO 2 IN THE FOLLOWING LINE:
         self.video_stream = video_stream.VideoStream((IM_WIDTH, IM_HEIGHT), video_src)
 
     def __del__(self):
@@ -166,6 +64,8 @@ class CardDetector:
     def buff_detect_cards(self, draw_data = True):
         cards, frame_rate_calc = self._detect_cards_helper()
 
+
+        # We need constants.REQ_CARDS_NUM cards, so drop the rest or populate it with dummies
         cards = cards[:constants.REQ_CARDS_NUM]
         
         cards = np.pad(cards, (0, constants.REQ_CARDS_NUM - len(cards)), 
@@ -184,11 +84,13 @@ class CardDetector:
 
                 cv2.drawContours(self.image, [card.contour], -1, (255, 0, 0), 2)
 
+        # If required buff size is not reached
         if len(self.cards_history) != self.buffer_size:
             return []
         
         card_dicts = [{} for i in range(constants.REQ_CARDS_NUM)]
 
+        # Calculate the most number of matches for each position
         for cards in self.cards_history:
             for i, card in enumerate(cards):
                 if card == 0:
@@ -210,6 +112,7 @@ class CardDetector:
 
         cards = []
 
+        # Pick the most frequent ones
         for card_dict in card_dicts:
             if len(card_dict) == 0:
                 cards.append(0)
@@ -264,8 +167,12 @@ class CardDetector:
         freq = cv2.getTickFrequency()
         frame_rate_calc = 1
         
-        # Grab frame from video stream
+        # Grab frame from the video stream
         self.image = self.video_stream.read()
+
+        # If image is not valid then return
+        if self.image.ndim == 0:
+            return [], frame_rate_calc
 
         # Start timer (for calculating frame rate)
         t1 = cv2.getTickCount()
@@ -292,10 +199,10 @@ class CardDetector:
             for cnt in cnts_sort:
 
                 # Create a card object from the contour and append it to the list of cards.
-                # preprocess_card function takes the card contour and contour and
+                # preprocess_card function takes the card image and model and
                 # determines the cards properties (corner points, etc). It generates a
-                # flattened 200x300 image of the card, and isolates the card's
-                # suit and rank from the image.
+                # flattened constants.CARD_WIDTH x constants.CARD_HEIGHT image of the card, and isolates the card's
+                # top left corner and identify it using the model afterwards.
                 card = cards_helper.process_card(cnt, self.image, self.card_model)
 
                 # Draw center point and match result on the image.

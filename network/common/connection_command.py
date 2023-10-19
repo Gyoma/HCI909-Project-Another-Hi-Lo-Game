@@ -2,7 +2,15 @@ import os
 from enum import Enum
 
 class ConnectionCommand:
+    """
+    A class to represent all network commands needed to control the game flow
+    """
+
     class Command(Enum):
+        """
+        An enumeration of all available commands
+        """
+        
         COMPETE = 0
         COMPETE_RES = 1
         USED_CARDS = 2
@@ -24,6 +32,10 @@ class ConnectionCommand:
         return self._args
     
     def pack(self):
+        """
+        Convert a command to appropriate form (array of bytes) to be sent via network 
+        """
+        
         return (' '.join([self._command.name, ' '.join(self._args)]) + os.linesep).encode('utf8')
     
     def __str__(self):
@@ -35,6 +47,10 @@ class ConnectionCommand:
 
     @staticmethod
     def parse_command(request):
+        """
+        Parse a command from request. If it's not valid then None will be returned
+        """
+        
         if not request:
             return None
 
