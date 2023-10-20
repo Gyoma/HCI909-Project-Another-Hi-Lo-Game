@@ -33,7 +33,9 @@ class GameBackend:
         player = None
 
         if constants.DEBUG_SESSION: # to be able to connect 2 players from localhost
-            player_ip += str(random.randint(1, 100))
+            player_ip += "-" + str(random.randint(1, 100))
+
+        print(f'New player connected with the next IP : {player_ip}')
 
         # Check if data for this IP is present. If so, then we recover player's state
         if player_ip in self.players:
