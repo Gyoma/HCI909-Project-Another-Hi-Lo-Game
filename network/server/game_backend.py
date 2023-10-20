@@ -173,7 +173,9 @@ class GameBackend:
         if len(player.used_cards) == 0:
             return ConnectionCommand(ConnectionCommand.Command.ERROR, ['No used cards'])
         
-        return ConnectionCommand(ConnectionCommand.Command.USED_CARDS_RES, player.used_cards)
+        cards = [constants.SHORT_SUITS[card.suit.name] + constants.SHORT_RANKS[card.rank.name] for card in player.curr_cards]
+
+        return ConnectionCommand(ConnectionCommand.Command.USED_CARDS_RES, cards)
     
     def __is_card(self, challenger):
         return challenger in constants.CARD_NAMES

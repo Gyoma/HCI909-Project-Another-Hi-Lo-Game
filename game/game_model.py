@@ -114,7 +114,9 @@ class GameModel():
         self.client.write_queue.sync_q.put(command)
 
     def __client_used_cards_command_res(self, command):
-        pass
+        cards = command.args()
+
+        print(f'Used cards : {cards}')
 
     def __client_status_command(self, command):
         print(str(command))

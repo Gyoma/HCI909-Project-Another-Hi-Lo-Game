@@ -13,6 +13,7 @@ class Player:
         self.writer = writer
         self.command_task = None
         self.disconnect_task = None
+        self.rounds_left = constants.MAX_NUM_OF_ROUNDS
 
     def card_used(self, card):
         return self.cards_used([card])
@@ -46,5 +47,12 @@ class Player:
         self.curr_cards = cards
 
     def update(self):
-        self.used_cards.extend(self.curr_cards)
+        self.rounds_left -= 1
+
+        if self.rounds_left > 0:
+            self.used_cards.extend(self.curr_cards)
+        else:
+            self.used_cards = []
+            self.rounds_left = constants.MAX_NUM_OF_ROUNDS
+
         self.curr_cards = []
