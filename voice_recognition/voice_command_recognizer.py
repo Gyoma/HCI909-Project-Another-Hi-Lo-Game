@@ -135,6 +135,7 @@ class VoiceCommandRecognizer:
 
                 break
 
+        # If the command is found, then add it to the queue that will be processed later
         if (recognized_command is not None) and (len(recognized_command.args) == recognized_command.nargs):
             while self.command_queue.qsize() >= self.max_queue_size:
                 task = self.command_queue.get()

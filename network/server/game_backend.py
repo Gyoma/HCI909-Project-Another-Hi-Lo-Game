@@ -126,6 +126,7 @@ class GameBackend:
 
         cards = []
 
+        # Validate client's input
         for arg in args:
             if not self.__is_card(arg):
                 return ConnectionCommand(ConnectionCommand.Command.ERROR, [f'Card is expected, but got {card}'])
@@ -162,11 +163,12 @@ class GameBackend:
         await barrier.wait()
         player.update()
 
-        if res == 1:
+        if res == 1: # I won
             return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, [constants.RoundResult.WIN.name, opp_cards])
-        if res == -1:
+        if res == -1: # Opponent won
             return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, [constants.RoundResult.LOSS.name, opp_cards])
         
+        # Draw
         return ConnectionCommand(ConnectionCommand.Command.COMPETE_RES, [constants.RoundResult.DRAW.name, opp_cards])
 
     async def __used_cards_command(self, player, args):

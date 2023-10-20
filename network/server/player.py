@@ -3,6 +3,8 @@ from common import constants
 class Player:
     """
     Class representing a player on server side with corresponding data
+
+    It stores all the data needed for the game and process it according to the game rules.
     """
 
     def __init__(self, ip, reader, writer):
@@ -25,6 +27,7 @@ class Player:
         beat = 0
         beaten = 0
 
+        # Compare card's ranks in the corresponding order
         for my_card, other_card in zip(self.curr_cards, player.curr_cards):
             my_rank = constants.SHORT_RANKS[my_card.rank.name]
             other_rank = constants.SHORT_RANKS[other_card.rank.name]
