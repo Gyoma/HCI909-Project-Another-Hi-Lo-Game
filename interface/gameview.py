@@ -25,7 +25,7 @@ class GameView(arcade.View):
             VoiceVocabulary.RIGHT.name.lower() : 2
         }
 
-        self.possible_states = [VoiceVocabulary.START]
+        self.possible_states = []
 
         self.player_selected_cards_sprites = arcade.SpriteList()
         self.player_available_cards_sprites = arcade.SpriteList()
@@ -48,12 +48,6 @@ class GameView(arcade.View):
 
     def setup(self):
         self.__update_player_cards()
-
-        # ready_to_proceed_button = arcade.gui.UIFlatButton(
-        #     width=200,
-        #     height=40,
-        #     text="I'm ready",
-        # )
 
         if constants.DEBUG_SESSION:
             load_button = arcade.gui.UIFlatButton(
@@ -118,12 +112,16 @@ class GameView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
+        self.possible_states = [VoiceVocabulary.START]
         self.game.model.card_detector.start()
         self.game.model.voice_recognizer.start()
+
+        return super().on_show_view()
 
     def on_hide_view(self):
         self.game.model.card_detector.stop()
         self.game.model.voice_recognizer.stop()
+        self.possible_states = []
 
         return super().on_hide_view()
 
@@ -252,7 +250,7 @@ class GameView(arcade.View):
             args = [card.suit.name + '-' + card.rank.name for card in self.game.model.player_selected_cards]
 
             self.game.model.process_client_command(ConnectionCommand(ConnectionCommand.Command.COMPETE, args))
-            self.possible_states = [VoiceVocabulary.START]
+            self.possible_states = []
 
         print(f'Next expected states: {self.possible_states}')
 
