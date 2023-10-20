@@ -11,6 +11,11 @@ import speech_recognition as sr
 import locale
 
 class SettingsView(arcade.View):
+    """
+    A view that shows the settings menu of the game.
+
+    It lets you to change the camera and microphone.
+    """
     def __init__(self):
         super().__init__()
 
@@ -33,6 +38,7 @@ class SettingsView(arcade.View):
             width=200,
             height=40,)
         
+        # Handle the event when the user selects a camera from the list
         @cameras_list.event("on_change")
         def on_change_dropdown(event):
             camera_index = self.__match_camera_to_index(event.new_value)
@@ -49,6 +55,7 @@ class SettingsView(arcade.View):
             width=200,
             height=40,)
         
+        # Handle the event when the user selects a microphone from the list
         @microphones_list.event("on_change")
         def on_change_dropdown(event):
             self.game.model.settings.microphone_id = self.__list_available_microphones().index(event.new_value)

@@ -13,6 +13,15 @@ from voice_recognition.voice_command_recognizer import VoiceCommand, VoiceVocabu
 SELECTED_CARD_VERTICAL_INDENT = 300
 
 class RoundResultView(arcade.View):
+    """
+    View to show the round result.
+
+    It shows the round result and lets you to go to the next round.
+
+    Possible voice commands:
+    - "next" to go to the next round
+    """
+
     def __init__(self):
         super().__init__()
 

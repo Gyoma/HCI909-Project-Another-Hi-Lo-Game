@@ -14,6 +14,17 @@ from network.common.connection_command import ConnectionCommand
 from voice_recognition.voice_command_recognizer import VoiceCommand, VoiceVocabulary
 
 class GameView(arcade.View):
+    """
+    A class representing the game view.
+
+    It builds an inteface to let the player to select cards and send them to the server.
+
+    Possible voice commands:
+    - "start" to load cards from camera
+    - "switch <> <>" to switch two corresponding cards (left, middle, right)
+    - "ready" to send selected cards to the server 
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -25,6 +36,7 @@ class GameView(arcade.View):
             VoiceVocabulary.RIGHT.name.lower() : 2
         }
 
+        # List of actions that can be performed by the player in the current moment
         self.possible_states = []
 
         self.player_selected_cards_sprites = arcade.SpriteList()
@@ -69,6 +81,7 @@ class GameView(arcade.View):
                 text="Ready",
             )
 
+            # Place action buttons in the top right corner
             vertical_box = arcade.gui.UIBoxLayout(space_between=5)
             vertical_box.add(load_button)
             vertical_box.add(switch_button)
@@ -79,12 +92,15 @@ class GameView(arcade.View):
             layout.add(vertical_box, 
                     anchor_x="right",
                     anchor_y="top",)
+            
+            # Handle mouse button click on action buttons
 
             @load_button.event("on_click")
             def on_click_flatbutton(event):
                 self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.START.name.lower(), 0))
 
 
+            # For now switch button switches only left and middle cards
             @switch_button.event("on_click")
             def on_click_flatbutton(event):
                 self.debug_voice_queue.put(VoiceCommand(VoiceVocabulary.SWITCH.name.lower(), nargs=2,
@@ -106,6 +122,7 @@ class GameView(arcade.View):
             f"Rounds left: {self.game.model.rounds_left}",
         )
 
+        # Place score label in the top left corner
         layout = self.ui_manager.add(arcade.gui.UIAnchorLayout())
         layout.add(self.score_label, anchor_x="left", anchor_y="top")
 
@@ -113,13 +130,18 @@ class GameView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
+        
+        # Init handling user input
         self.possible_states = [VoiceVocabulary.START]
+
+        # Start using camera and microphone
         self.game.model.card_detector.start()
         self.game.model.voice_recognizer.start()
 
         return super().on_show_view()
 
     def on_hide_view(self):
+        # Stop using camera and microphone
         self.game.model.card_detector.stop()
         self.game.model.voice_recognizer.stop()
         self.possible_states = []
@@ -173,22 +195,25 @@ class GameView(arcade.View):
 
         return super().on_update(delta_time)
 
+    # Start to scroll cards
+    # Python arcade library doesn't support handling mouse press event on UI elements, so we need to do it manually
     def on_mouse_press(self, x, y, button, modifiers):
         # Press on "Left" button
         if (self.scroll_left_button.center_x - self.scroll_left_button.width / 2 <= x <= self.scroll_left_button.center_x + self.scroll_left_button.width / 2 and
                 self.scroll_left_button.center_y - self.scroll_left_button.height / 2 <= y <= self.scroll_left_button.center_y + self.scroll_left_button.height / 2):
-            self.move_cards_direction = 1.
+            self.move_cards_direction = 1. # Scroll cards to the left
             return
 
         # Press on "Right" button
         if (self.scroll_right_button.center_x - self.scroll_right_button.width / 2 <= x <= self.scroll_right_button.center_x + self.scroll_right_button.width / 2 and
                 self.scroll_right_button.center_y - self.scroll_right_button.height / 2 <= y <= self.scroll_right_button.center_y + self.scroll_right_button.height / 2):
-            self.move_cards_direction = -1.
+            self.move_cards_direction = -1. # Scroll cards to the right
             return
 
     def on_mouse_release(self, x, y, button, modifiers):
-        self.move_cards_direction = 0.
+        self.move_cards_direction = 0. # Stop scrolling cards
 
+    # Init buttons to scroll cards
     def __init_scroll_widgets(self):
         self.scroll_left_button = arcade.gui.UIFlatButton(
             width=200,
@@ -214,6 +239,7 @@ class GameView(arcade.View):
                     anchor_x="right",
                     anchor_y="bottom",)
 
+    # Init player's available cards sprites to show
     def __update_player_cards(self):
         card_width, card_height = CardSprite.card_sprite_size()
 
@@ -224,6 +250,7 @@ class GameView(arcade.View):
         for card_sprite in self.all_cards_sprites:
             card_sprite.face_up()
 
+            # If card is available for player, then place it after previous one to show
             if (card_sprite.card in self.game.model.player_available_cards):
                 card_sprite.position = (i + 0.5) * card_width, card_height / 2
                 self.player_available_cards_sprites.append(card_sprite)
@@ -260,6 +287,7 @@ class GameView(arcade.View):
 
         print(f'Next expected states: {self.possible_states}')
 
+    # Draw all cards in the center by x-coordinate, y-coordinate is specified by argument
     def __draw_cards_in_the_center(self, cards_sprites, y):
         card_width, card_height = CardSprite.card_sprite_size()
         
@@ -285,6 +313,7 @@ class GameView(arcade.View):
             player_selected_cards_sprites.append(
                 CardSprite(card, is_face_up=True))
 
+        # Draw cards in the center of the window
         _, card_height = CardSprite.card_sprite_size()
         self.__draw_cards_in_the_center(player_selected_cards_sprites, (
             self.window.height - card_height) / 2)

@@ -6,6 +6,12 @@ import arcade.gui
 from interface.startsubmenu import StartSubMenu
 
 class MainMenuView(arcade.View):
+    """
+    A view that shows the main menu of the game.
+
+    It lets you to start a new game, change settings or exit the game.
+    """
+
     def __init__(self):
         super().__init__()
 

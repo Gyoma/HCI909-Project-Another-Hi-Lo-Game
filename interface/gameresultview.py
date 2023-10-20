@@ -10,6 +10,16 @@ from game.settings import Settings
 from voice_recognition.voice_command_recognizer import VoiceVocabulary
 
 class GameResultView(arcade.View):
+    """
+    View to show the game result.
+
+    It shows the game result and lets you to start a new game or exit the game.
+
+    Possible voice commands:
+    - "play again" to start a new game
+    - "exit" to exit the game
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -101,6 +111,7 @@ class GameResultView(arcade.View):
         return super().on_update(delta_time)
     
     def __process_voice_command(self, command):
+        # To start a new game, it's required to say "play again"
         if command.name == VoiceVocabulary.PLAY.name.lower():
             if len(command.args) != command.nargs:
                 return

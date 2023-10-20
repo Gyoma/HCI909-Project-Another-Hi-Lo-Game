@@ -6,6 +6,12 @@ current_folder = os.path.dirname(os.path.abspath(__file__))
 FACE_DOWN_IMAGE = os.path.join(current_folder, 'imgs', 'CARD-BACK.png')
 
 class CardSprite(arcade.Sprite):
+    """
+    A class responsible for displaying a card on the screen.
+
+    It's a wrapper around arcade.Sprite class with using card images from 'imgs' folder.
+    """
+
     def __init__(self, card, is_face_up = False):
         self.card = card
 

@@ -1,6 +1,12 @@
 from enum import Enum
 
 class Card():
+    """
+    A structure that represents a card.
+
+    It's a wrapper around two enums: Suit and Rank.
+    """
+
     class Suit(Enum):
         CLUBS = 1 # ♣
         DIAMONDS = 2 # ♦

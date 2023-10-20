@@ -4,6 +4,12 @@ import cv2
 from common import constants
 
 class GameWindow(arcade.Window):
+    """
+    Main window class for the game.
+
+    It passes the server messages to the model and shows the camera view independently from current interface view.
+    """
+
     def __init__(self, game):
         super().__init__(constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, 
                          title="Another Hi-Lo Game", resizable=True)
@@ -13,6 +19,7 @@ class GameWindow(arcade.Window):
     def on_update(self, delta_time: float):
         card_detector = self.game.model.card_detector
 
+        # Open a new window to display the image from camera
         if card_detector is not None:
             image = card_detector.get_last_image()
 
