@@ -123,15 +123,24 @@ class VoiceCommandRecognizer:
                 text = text[index + len(command.name):]
                 recognized_command = copy.deepcopy(command)
 
+                variants_found = {}
+
                 for variant in recognized_command.variants:
                     index = text.find(variant)
 
                     if index != -1:
-                        text = text[index + len(variant):]
-                        recognized_command.args.append(variant)
+                        variants_found.update({variant : index})
 
-                    if len(recognized_command.args) == recognized_command.nargs:
+                if len(variants_found) == 0 and recognized_command.nargs > 0:
+                    continue
+
+                for _ in range(recognized_command.nargs):
+                    if len(variants_found) == 0:
                         break
+
+                    first_variant = min(variants_found, key=variants_found.get)
+                    recognized_command.args.append(first_variant)
+                    del variants_found[first_variant]
 
                 break
 
