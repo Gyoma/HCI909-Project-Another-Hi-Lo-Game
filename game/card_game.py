@@ -24,6 +24,14 @@ def game():
     return _game
 
 class Game:
+    """
+    The main game component letting you to initialize, setup, run and stop the game.\n
+    
+    You are supposed to instantiate it and refer to it only by calling init() and game() functions,\n
+    you shouldn't intsantiate it by yourself.
+
+    """
+
     def __init__(self, event_loop, client_read_queue, client_write_queue):
         self.model = GameModel(event_loop, client_read_queue, client_write_queue)
 

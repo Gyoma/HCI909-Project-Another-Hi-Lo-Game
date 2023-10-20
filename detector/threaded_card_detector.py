@@ -64,7 +64,8 @@ class ThreadedCardDetector():
     A class responsible for finding and identifying cards on an image obtained from a camera.\n
     It runs in its' own thread as daemon.\n
 
-    With this class you can either obtain identified cards via get_cards or the last camera image.\b
+    With this class you can either obtain identified cards via get_cards or the last camera image.\n
+    
     Basically, it's just a threaded wrapper for CardDetector, so check it first.
     """
 

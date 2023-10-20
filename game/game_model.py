@@ -13,6 +13,13 @@ from network.server import server
 from voice_recognition.voice_command_recognizer import VoiceCommandRecognizer, VoiceVocabulary, VoiceCommand
 
 class GameModel():
+    """
+    A class representing game model to store all the data needed for the game and process it in appropriate way.\n
+
+    For example, all the server responses should be processed by calling process_client_command.\n
+    Also, it's responsible for starting the game server and manage connections to it.
+    """
+
     def __init__(self, event_loop, client_read_queue, client_write_queue):
         self.event_loop = event_loop
         self.client = Client(client_read_queue, client_write_queue)
