@@ -2,9 +2,6 @@ import queue
 from common import constants
 from game import card_game
 from interface.cardsprite import CardSprite
-from interface.gameresultview import GameResultView
-
-import game.settings as Settings
 
 from interface import gameview
 
@@ -33,7 +30,6 @@ class RoundResultView(arcade.View):
         self.ui_manager.enable()
 
         self.go_to_next_round = False
-
         self.setup()
 
     def setup(self):
@@ -100,7 +96,7 @@ class RoundResultView(arcade.View):
 
         # Process voice commands
         voice_command_queue = self.game.model.voice_recognizer.command_queue
-        
+
         while not voice_command_queue.empty():
             self.__process_voice_command(voice_command_queue.get())
             voice_command_queue.task_done()

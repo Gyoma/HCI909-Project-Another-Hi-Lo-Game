@@ -42,7 +42,8 @@ class GameView(arcade.View):
         self.move_cards_direction = 0
         self.loading_cards = []
 
-        self.debug_voice_queue = queue.Queue()
+        if constants.DEBUG_SESSION:
+            self.debug_voice_queue = queue.Queue()
 
         self.setup()
 
@@ -148,11 +149,14 @@ class GameView(arcade.View):
 
             self.__update_player_cards()
 
+        # Voice processing
         voice_command_queue = queue.Queue()
-
-        while not self.debug_voice_queue.empty():
-            voice_command_queue.put(self.debug_voice_queue.get())
-            self.debug_voice_queue.task_done()
+        
+        # Create common queue containing debug (if any) commands and true voice commands
+        if constants.DEBUG_SESSION:
+            while not self.debug_voice_queue.empty():
+                voice_command_queue.put(self.debug_voice_queue.get())
+                self.debug_voice_queue.task_done()
 
         while not self.game.model.voice_recognizer.command_queue.empty():
             voice_command_queue.put(self.game.model.voice_recognizer.command_queue.get())
@@ -170,11 +174,13 @@ class GameView(arcade.View):
         return super().on_update(delta_time)
 
     def on_mouse_press(self, x, y, button, modifiers):
+        # Press on "Left" button
         if (self.scroll_left_button.center_x - self.scroll_left_button.width / 2 <= x <= self.scroll_left_button.center_x + self.scroll_left_button.width / 2 and
                 self.scroll_left_button.center_y - self.scroll_left_button.height / 2 <= y <= self.scroll_left_button.center_y + self.scroll_left_button.height / 2):
             self.move_cards_direction = 1.
             return
 
+        # Press on "Right" button
         if (self.scroll_right_button.center_x - self.scroll_right_button.width / 2 <= x <= self.scroll_right_button.center_x + self.scroll_right_button.width / 2 and
                 self.scroll_right_button.center_y - self.scroll_right_button.height / 2 <= y <= self.scroll_right_button.center_y + self.scroll_right_button.height / 2):
             self.move_cards_direction = -1.

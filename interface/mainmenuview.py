@@ -44,7 +44,7 @@ class MainMenuView(arcade.View):
         quit_button = arcade.gui.UIFlatButton(
             width=200,
             height=40,
-            text="Quit",
+            text="Exit",
         )
 
         @quit_button.event("on_click")

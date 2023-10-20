@@ -7,6 +7,7 @@ from interface import gameview
 import arcade
 import arcade.gui
 from game.settings import Settings
+from voice_recognition.voice_command_recognizer import VoiceVocabulary
 
 class GameResultView(arcade.View):
     def __init__(self):
@@ -17,7 +18,7 @@ class GameResultView(arcade.View):
         self.ui_manager = arcade.gui.UIManager()
         self.ui_manager.enable()
 
-        self.go_to_next_game = False
+        self.play_new_game = False
         self.quit = False
 
         self.setup()
@@ -44,18 +45,17 @@ class GameResultView(arcade.View):
 
         @play_again_button.event("on_click")
         def on_click_flatbutton(event):
-            self.game.model.reset()
-            self.window.show_view(gameview.GameView())
+            self.play_new_game = True
         
         quit_button = arcade.gui.UIFlatButton(
             width=200,
             height=40,
-            text="Quit",
+            text="Exit",
         )
 
         @quit_button.event("on_click")
         def on_click_flatbutton(event):
-            arcade.exit()
+            self.quit = True
 
         vertical_box = arcade.gui.UIBoxLayout(space_between=5)
         vertical_box.add(game_result_label)
@@ -84,5 +84,32 @@ class GameResultView(arcade.View):
 
         self.ui_manager.draw()
 
-    def on_update(self, delta_time: float):
+    def on_update(self, delta_time: float):            
+        # Process voice commands
+        voice_command_queue = self.game.model.voice_recognizer.command_queue
+        
+        while not voice_command_queue.empty():
+            self.__process_voice_command(voice_command_queue.get())
+            voice_command_queue.task_done()
+
+        if self.play_new_game:
+            self.game.model.reset()
+            self.window.show_view(gameview.GameView())
+        elif self.quit:
+            arcade.exit()
+
         return super().on_update(delta_time)
+    
+    def __process_voice_command(self, command):
+        if command.name == VoiceVocabulary.PLAY.name.lower():
+            if len(command.args) != command.nargs:
+                return
+            
+            arg = command.args[0]
+
+            if arg == VoiceVocabulary.AGAIN.name.lower():
+                self.play_new_game = True
+                return
+            
+        if command.name == VoiceVocabulary.EXIT.name.lower():
+            self.quit = True

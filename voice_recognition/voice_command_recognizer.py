@@ -18,7 +18,10 @@ class VoiceVocabulary(Enum):
     SWITCH = 3,
     LEFT = 4,
     MIDDLE = 5,
-    RIGHT = 6
+    RIGHT = 6,
+    PLAY = 7,
+    AGAIN = 8,
+    EXIT = 9
 
 class VoiceCommand:
     """
@@ -60,7 +63,10 @@ class VoiceCommandRecognizer:
             VoiceCommand(VoiceVocabulary.SWITCH.name.lower(), nargs=2, variants=[
                 VoiceVocabulary.LEFT.name.lower(), 
                 VoiceVocabulary.MIDDLE.name.lower(),
-                VoiceVocabulary.RIGHT.name.lower()])
+                VoiceVocabulary.RIGHT.name.lower()]),
+            VoiceCommand(VoiceVocabulary.PLAY.name.lower(), nargs=1, variants=[
+                VoiceVocabulary.AGAIN.name.lower()]),
+            VoiceCommand(VoiceVocabulary.EXIT.name.lower(), 0),
         ]
         
         self.command_queue = queue.Queue()
