@@ -5,6 +5,8 @@ from network.common.connection_command import ConnectionCommand
 from network.server.player import Player
 from common import constants
 
+import random
+
 class GameBackend:
     """
     A class to manage the game flow. It's responsible for:\n
@@ -29,6 +31,9 @@ class GameBackend:
     async def player_connected(self, reader, writer):
         player_ip = writer.transport.get_extra_info('peername')[0]
         player = None
+
+        if constants.DEBUG_SESSION: # to be able to connect 2 players from localhost
+            player_ip += random.randint(1, 100)
 
         # Check if data for this IP is present. If so, then we recover player's state
         if player_ip in self.players:
