@@ -1,4 +1,4 @@
-# HCI909 Project - Attack card game
+# HCI909 Project - Another Hi-Lo Game
 
 This game is based on Hi-Lo game, where only ranks of cards matter. If you have the higher rank, then you win.
 
