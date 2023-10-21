@@ -26,7 +26,7 @@ This game is based on the Hi-Lo game rules, where only ranks of cards matter. If
 
 ## Advanced interaction techniques
 
-- To play the game, you need to prepare a real (physical) french card deck, because the game is played with real cards. The card loading is controlled by a camera, which is used to detect, identify the cards and their order, so you need to choose a plain monochrome surface you are going to place your cards on (see Figure 1).  Make sure you adjusted your camera well so that all cards fit into the picture and there are no problems with surrounding light, etc.
+- To play the game, you need to prepare a real (physical) french card deck, because the game is played with real cards. The card loading is controlled by a camera, which is used to detect, identify the cards and their order, so you need to choose a plain monochrome surface you are going to place your cards on.  Make sure you adjusted your camera well so that all cards fit into the picture and there are no problems with surrounding light, etc.
 - The game is played with 2 players by a network connection. The players can be in different locations.
 - The game can be controlled by user voice commands. The commands are used to control the game flow, but all the manipulations in menus preceding the game are controlled by mouse.
 
